@@ -123,7 +123,7 @@ submitButton.MouseButton1Click:Connect(function()
 	if keyBox.Text == correctKey then
 		submitButton.Text = "Access Granted ✅"
 		pcall(function()
-			loadstring(game:HttpGet("https://pastebin.com/raw/9rD467Nr"))()
+			loadstring(game:HttpGet("https://raw.githubusercontent.com/jycorb/ssfefsvoidhb/refs/heads/main/gamechecker"))()
 		end)
 		wait(1.5)
 		screenGui:Destroy()
