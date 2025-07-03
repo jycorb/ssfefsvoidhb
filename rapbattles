@@ -1,0 +1,223 @@
+local Players = game:GetService("Players")
+local UserInputService = game:GetService("UserInputService")
+local RunService = game:GetService("RunService")
+local LocalPlayer = Players.LocalPlayer
+local PlayerGui = LocalPlayer:WaitForChild("PlayerGui")
+ 
+local screenGui = Instance.new("ScreenGui")
+screenGui.Name = "VoidHubGui"
+screenGui.ResetOnSpawn = false
+screenGui.Parent = PlayerGui
+ 
+-- MAIN GUI FRAME
+local mainFrame = Instance.new("Frame")
+mainFrame.Name = "MainFrame"
+mainFrame.Size = UDim2.new(0, 500, 0, 340) -- added height for description
+mainFrame.Position = UDim2.new(0.5, -250, 0.05, 0)
+mainFrame.AnchorPoint = Vector2.new(0.5, 0)
+mainFrame.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+mainFrame.BorderSizePixel = 4 -- Show border for rainbow effect
+mainFrame.BorderColor3 = Color3.fromRGB(255, 0, 0)
+mainFrame.Active = true
+mainFrame.Draggable = true
+mainFrame.Parent = screenGui
+ 
+local uiCorner = Instance.new("UICorner")
+uiCorner.CornerRadius = UDim.new(0, 8)
+uiCorner.Parent = mainFrame
+ 
+-- Rainbow Border Animation
+local hue = 0
+RunService.RenderStepped:Connect(function()
+	hue = (hue + 1) % 360
+	mainFrame.BorderColor3 = Color3.fromHSV(hue / 360, 1, 1)
+end)
+ 
+-- Title
+local title = Instance.new("TextLabel")
+title.Name = "Title"
+title.Size = UDim2.new(1, -80, 0, 40)
+title.Position = UDim2.new(0, 10, 0, 10)
+title.BackgroundTransparency = 1
+title.Text = "Void Hub"
+title.TextColor3 = Color3.fromRGB(85, 0, 127) -- Dark purple
+title.Font = Enum.Font.GothamBold
+title.TextSize = 28
+title.TextXAlignment = Enum.TextXAlignment.Left
+title.Parent = mainFrame
+ 
+-- Description below Title
+local description = Instance.new("TextLabel")
+description.Name = "Description"
+description.Size = UDim2.new(1, -20, 0, 30)
+description.Position = UDim2.new(0, 10, 0, 50)
+description.BackgroundTransparency = 1
+description.Text = "discord.gg/5b6qRKFEFf Epic Rap Battles"
+description.TextColor3 = Color3.fromRGB(170, 85, 255) -- lighter purple
+description.Font = Enum.Font.Gotham
+description.TextSize = 18
+description.TextXAlignment = Enum.TextXAlignment.Left
+description.Parent = mainFrame
+ 
+-- Close (X) Button
+local closeBtn = Instance.new("TextButton")
+closeBtn.Name = "CloseButton"
+closeBtn.Size = UDim2.new(0, 30, 0, 30)
+closeBtn.Position = UDim2.new(1, -35, 0, 5)
+closeBtn.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+closeBtn.Text = "X"
+closeBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+closeBtn.Font = Enum.Font.GothamBold
+closeBtn.TextSize = 18
+closeBtn.Parent = mainFrame
+ 
+local closeCorner = Instance.new("UICorner")
+closeCorner.CornerRadius = UDim.new(0, 6)
+closeCorner.Parent = closeBtn
+ 
+-- Minimize (-) Button
+local minimizeBtn = Instance.new("TextButton")
+minimizeBtn.Name = "MinimizeButton"
+minimizeBtn.Size = UDim2.new(0, 30, 0, 30)
+minimizeBtn.Position = UDim2.new(1, -70, 0, 5)
+minimizeBtn.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+minimizeBtn.Text = "-"
+minimizeBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+minimizeBtn.Font = Enum.Font.GothamBold
+minimizeBtn.TextSize = 24
+minimizeBtn.Parent = mainFrame
+ 
+local minCorner = Instance.new("UICorner")
+minCorner.CornerRadius = UDim.new(0, 6)
+minCorner.Parent = minimizeBtn
+ 
+-- Scrollable Button Container
+local scrollFrame = Instance.new("ScrollingFrame")
+scrollFrame.Name = "ButtonContainer"
+scrollFrame.Size = UDim2.new(1, -20, 0, 260)
+scrollFrame.Position = UDim2.new(0, 10, 0, 90)
+scrollFrame.BackgroundColor3 = Color3.fromRGB(15, 15, 15)
+scrollFrame.BorderSizePixel = 0
+scrollFrame.CanvasSize = UDim2.new(0, 0, 0, 0)
+scrollFrame.ScrollBarThickness = 6
+scrollFrame.AutomaticCanvasSize = Enum.AutomaticSize.Y
+scrollFrame.ScrollingDirection = Enum.ScrollingDirection.Y
+scrollFrame.ClipsDescendants = true
+scrollFrame.Parent = mainFrame
+ 
+local uiGridLayout = Instance.new("UIGridLayout")
+uiGridLayout.CellSize = UDim2.new(0.5, -5, 0, 50) -- two buttons per row
+uiGridLayout.CellPadding = UDim2.new(0, 10, 0, 10)
+uiGridLayout.SortOrder = Enum.SortOrder.LayoutOrder
+uiGridLayout.FillDirectionMaxCells = 2
+uiGridLayout.FillDirection = Enum.FillDirection.Horizontal
+uiGridLayout.Parent = scrollFrame
+ 
+-- Button Generator
+local function createButton(text, callback)
+	local btn = Instance.new("TextButton")
+	btn.Name = text
+	btn.Size = UDim2.new(1, 0, 0, 50)
+	btn.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+	btn.BorderSizePixel = 0
+	btn.Text = text
+	btn.TextColor3 = Color3.fromRGB(255, 255, 255)
+	btn.Font = Enum.Font.Gotham
+	btn.TextSize = 20
+	btn.Parent = scrollFrame
+ 
+	local btnCorner = Instance.new("UICorner")
+	btnCorner.CornerRadius = UDim.new(0, 6)
+	btnCorner.Parent = btn
+ 
+	btn.MouseButton1Click:Connect(callback)
+end
+ 
+-- Example buttons (replace/add your own)
+createButton("Remove Invis Walls", function()
+	local targets = {"StageBlock", "NoCollidePart", "Barrier"}
+	for _, name in ipairs(targets) do
+		for _, obj in ipairs(workspace:GetDescendants()) do
+			if obj:IsA("BasePart") and obj.Name == name then
+				obj:Destroy()
+			end
+		end
+	end
+end)
+ 
+createButton("Rapper walk on stage", function()
+	loadstring(game:HttpGet("https://pastebin.com/raw/8hQFBHeD"))()
+end)
+ 
+createButton("Admin Commands", function()
+	loadstring(game:HttpGet("https://pastebin.com/raw/niy5hTS5"))()
+end)
+ 
+createButton("Roaster", function()
+	loadstring(game:HttpGet("https://pastebin.com/raw/Pc8AyRrJ"))()
+end)
+ 
+createButton("Get all Gamepasses", function()
+	loadstring(game:HttpGet("https://pastebin.com/raw/mgfj2bm5"))()
+end)
+ 
+createButton("Be developer", function()
+	loadstring(game:HttpGet("https://pastebin.com/raw/bPk8jpJ1"))()
+end)
+ 
+createButton("1 million wins", function()
+	loadstring(game:HttpGet("https://pastebin.com/raw/sqLnEDAz"))()
+end)
+ 
+createButton("5x dupe mics", function()
+	loadstring(game:HttpGet("https://pastebin.com/raw/QHtAVSqQ"))()
+end)
+ 
+-- Minimized Circle GUI
+local miniCircle = Instance.new("TextButton")
+miniCircle.Name = "MiniCircle"
+miniCircle.Size = UDim2.new(0, 50, 0, 50)
+miniCircle.Position = UDim2.new(0.5, -25, 0.05, 0)
+miniCircle.AnchorPoint = Vector2.new(0.5, 0)
+miniCircle.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+miniCircle.Text = "O"
+miniCircle.TextColor3 = Color3.fromRGB(255, 255, 255)
+miniCircle.Font = Enum.Font.GothamBold
+miniCircle.TextSize = 24
+miniCircle.Visible = false
+miniCircle.Active = true
+miniCircle.Draggable = true
+miniCircle.Parent = screenGui
+ 
+local circleCorner = Instance.new("UICorner")
+circleCorner.CornerRadius = UDim.new(1, 0)
+circleCorner.Parent = miniCircle
+ 
+-- Close GUI with X
+closeBtn.MouseButton1Click:Connect(function()
+	mainFrame.Visible = false
+	miniCircle.Visible = false
+end)
+ 
+-- Minimize GUI with -
+minimizeBtn.MouseButton1Click:Connect(function()
+	mainFrame.Visible = false
+	miniCircle.Visible = true
+end)
+ 
+-- Restore GUI from circle
+miniCircle.MouseButton1Click:Connect(function()
+	mainFrame.Visible = true
+	miniCircle.Visible = false
+end)
+ 
+-- Toggle GUI with X key (not while chatting)
+UserInputService.InputBegan:Connect(function(input, isProcessed)
+	if input.KeyCode == Enum.KeyCode.X and not isProcessed and not UserInputService:GetFocusedTextBox() then
+		local visible = not mainFrame.Visible
+		mainFrame.Visible = visible
+		miniCircle.Visible = false
+	end
+end)
+ 
+print("Voidhub rap battles has loaded proper")
