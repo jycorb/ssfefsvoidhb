@@ -1,0 +1,18 @@
+-- Multi-Game Whitelist Loader with Notification
+local allowedPlaceIds = {
+    [8067158534] = true,
+    [1234567890] = true, -- Add more supported game IDs here
+    [9876543210] = true,
+}
+ 
+if allowedPlaceIds[game.PlaceId] then
+    loadstring(game:HttpGet("https://pastebin.com/raw/pSuAZpS1"))()
+else
+    local StarterGui = game:GetService("StarterGui")
+    StarterGui:SetCore("SendNotification", {
+        Title = "Script isn't supported in this game",
+        Text = "Check on the discord for supported games",
+        Duration = 6
+    })
+end
+ 
