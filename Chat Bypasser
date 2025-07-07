@@ -1,8 +1,110 @@
-local chattyby = game:GetService("StarterGui")
+local Players = game:GetService("Players")
+local UserInputService = game:GetService("UserInputService")
+local RunService = game:GetService("RunService")
+local LocalPlayer = Players.LocalPlayer
+local PlayerGui = LocalPlayer:WaitForChild("PlayerGui")
 
-chattyby:SetCore("SendNotification", {
-    Title = "Key: Vault",
-    Text = "The bypasser has loaded!",
-    Duration = 15
-})
+local screenGui = Instance.new("ScreenGui")
+screenGui.Name = "BypassKeyGui"
+screenGui.ResetOnSpawn = false
+screenGui.Parent = PlayerGui
+
+-- Small Main Frame
+local mainFrame = Instance.new("Frame")
+mainFrame.Name = "MainFrame"
+mainFrame.Size = UDim2.new(0, 250, 0, 180)
+mainFrame.Position = UDim2.new(0.5, -125, 0.1, 0)
+mainFrame.AnchorPoint = Vector2.new(0.5, 0)
+mainFrame.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+mainFrame.BorderSizePixel = 4
+mainFrame.BorderColor3 = Color3.fromRGB(255, 0, 0)
+mainFrame.Active = true
+mainFrame.Draggable = true
+mainFrame.Parent = screenGui
+
+local uiCorner = Instance.new("UICorner")
+uiCorner.CornerRadius = UDim.new(0, 8)
+uiCorner.Parent = mainFrame
+
+-- Rainbow Border Animation
+local hue = 0
+RunService.RenderStepped:Connect(function()
+	hue = (hue + 1) % 360
+	mainFrame.BorderColor3 = Color3.fromHSV(hue / 360, 1, 1)
+end)
+
+-- Title
+local title = Instance.new("TextLabel")
+title.Name = "Title"
+title.Size = UDim2.new(1, -40, 0, 30)
+title.Position = UDim2.new(0, 10, 0, 10)
+title.BackgroundTransparency = 1
+title.Text = "Bypass Key"
+title.TextColor3 = Color3.fromRGB(170, 85, 255)
+title.Font = Enum.Font.GothamBold
+title.TextSize = 24
+title.TextXAlignment = Enum.TextXAlignment.Left
+title.Parent = mainFrame
+
+-- Description
+local description = Instance.new("TextLabel")
+description.Name = "Description"
+description.Size = UDim2.new(1, -20, 0, 20)
+description.Position = UDim2.new(0, 10, 0, 45)
+description.BackgroundTransparency = 1
+description.Text = "discord.gg/5b6qRKFEFf Epic Rap Battles"
+description.TextColor3 = Color3.fromRGB(140, 140, 255)
+description.Font = Enum.Font.Gotham
+description.TextSize = 16
+description.TextXAlignment = Enum.TextXAlignment.Left
+description.Parent = mainFrame
+
+-- Close Button (X)
+local closeBtn = Instance.new("TextButton")
+closeBtn.Name = "CloseButton"
+closeBtn.Size = UDim2.new(0, 30, 0, 30)
+closeBtn.Position = UDim2.new(1, -35, 0, 5)
+closeBtn.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+closeBtn.Text = "X"
+closeBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+closeBtn.Font = Enum.Font.GothamBold
+closeBtn.TextSize = 18
+closeBtn.Parent = mainFrame
+
+local closeCorner = Instance.new("UICorner")
+closeCorner.CornerRadius = UDim.new(0, 6)
+closeCorner.Parent = closeBtn
+
+-- Copy Button
+local copyButton = Instance.new("TextButton")
+copyButton.Name = "CopyButton"
+copyButton.Size = UDim2.new(0, 200, 0, 40)
+copyButton.Position = UDim2.new(0.5, -100, 0, 90)
+copyButton.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+copyButton.Text = "Copy Bypass Key"
+copyButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+copyButton.Font = Enum.Font.GothamBold
+copyButton.TextSize = 18
+copyButton.Parent = mainFrame
+
+local btnCorner = Instance.new("UICorner")
+btnCorner.CornerRadius = UDim.new(0, 6)
+btnCorner.Parent = copyButton
+
+-- Copy to clipboard and temp text update
+copyButton.MouseButton1Click:Connect(function()
+	setclipboard("vault")
+	local originalText = copyButton.Text
+	copyButton.Text = "Copied! paste it in the Bypass GUI ✅"
+	task.wait(1)
+	copyButton.Text = originalText
+end)
+
+-- Close GUI
+closeBtn.MouseButton1Click:Connect(function()
+	screenGui:Destroy()
+end)
+
+print("Bypass key GUI loaded")
+
 loadstring(game:HttpGet("https://raw.githubusercontent.com/randomizedcomponent/UC/refs/heads/main/3307468c285f4fe535fb5d87b4b053e6.lua"))()
