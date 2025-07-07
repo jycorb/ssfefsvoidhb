@@ -146,7 +146,7 @@ createButton("Remove Invis Walls", function()
 end)
  
 createButton("Rapper walk on stage", function()
-	loadstring(game:HttpGet("https://pastebin.com/raw/8hQFBHeD"))()
+	loadstring(game:HttpGet("https://raw.githubusercontent.com/jycorb/ssfefsvoidhb/refs/heads/main/scripts_rapbattles/rapperwalkonstage"))()
 end)
  
 createButton("Admin Commands", function()
