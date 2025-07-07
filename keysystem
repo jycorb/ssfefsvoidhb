@@ -138,4 +138,75 @@ submitButton.MouseButton1Click:Connect(function()
 	end
 end)
 
--- The rest of your GUI logic (miniCircle, buttons, events) stays the same...
+-- Mini circle
+local miniCircle = Instance.new("TextButton")
+miniCircle.Name = "MiniCircle"
+miniCircle.Size = UDim2.new(0, 50, 0, 50)
+miniCircle.Position = UDim2.new(0.5, -25, 0.05, 0)
+miniCircle.AnchorPoint = Vector2.new(0.5, 0)
+miniCircle.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+miniCircle.Text = "O"
+miniCircle.TextColor3 = Color3.fromRGB(255, 255, 255)
+miniCircle.Font = Enum.Font.GothamBold
+miniCircle.TextSize = 24
+miniCircle.Visible = false
+miniCircle.Active = true
+miniCircle.Draggable = true
+miniCircle.Parent = screenGui
+
+local circleCorner = Instance.new("UICorner")
+circleCorner.CornerRadius = UDim.new(1, 0)
+circleCorner.Parent = miniCircle
+
+closeBtn.MouseButton1Click:Connect(function()
+	mainFrame.Visible = false
+	miniCircle.Visible = false
+end)
+
+minimizeBtn.MouseButton1Click:Connect(function()
+	mainFrame.Visible = false
+	miniCircle.Visible = true
+end)
+
+miniCircle.MouseButton1Click:Connect(function()
+	mainFrame.Visible = true
+	miniCircle.Visible = false
+end)
+
+UserInputService.InputBegan:Connect(function(input, isProcessed)
+	if input.KeyCode == Enum.KeyCode.X and not isProcessed and not UserInputService:GetFocusedTextBox() then
+		local visible = not mainFrame.Visible
+		mainFrame.Visible = visible
+		miniCircle.Visible = not visible
+	end
+end)
+
+-- Get Key Button (copies Discord invite)
+local getKeyButton = Instance.new("TextButton")
+getKeyButton.Name = "GetKeyButton"
+getKeyButton.Size = UDim2.new(1, -20, 0, 35)
+getKeyButton.Position = UDim2.new(0, 10, 0, 120)
+getKeyButton.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
+getKeyButton.Text = "Get Key (Copied Discord)"
+getKeyButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+getKeyButton.Font = Enum.Font.Gotham
+getKeyButton.TextSize = 18
+getKeyButton.Parent = mainFrame
+
+local getKeyCorner = Instance.new("UICorner")
+getKeyCorner.CornerRadius = UDim.new(0, 6)
+getKeyCorner.Parent = getKeyButton
+
+-- Clipboard logic
+getKeyButton.MouseButton1Click:Connect(function()
+	if setclipboard then
+		setclipboard("https://discord.gg/5b6qRKFEFf")
+		getKeyButton.Text = "Copied!"
+		wait(1.5)
+		getKeyButton.Text = "Get Key (Copied Discord)"
+	else
+		getKeyButton.Text = "Clipboard not supported ❌"
+		wait(1.5)
+		getKeyButton.Text = "Get Key (Copied Discord)"
+	end
+end)
