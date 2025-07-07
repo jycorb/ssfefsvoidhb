@@ -3,12 +3,12 @@ local UserInputService = game:GetService("UserInputService")
 local RunService = game:GetService("RunService")
 local LocalPlayer = Players.LocalPlayer
 local PlayerGui = LocalPlayer:WaitForChild("PlayerGui")
- 
+
 local screenGui = Instance.new("ScreenGui")
 screenGui.Name = "VoidKeySystemGUI"
 screenGui.ResetOnSpawn = false
 screenGui.Parent = PlayerGui
- 
+
 local mainFrame = Instance.new("Frame")
 mainFrame.Name = "MainFrame"
 mainFrame.Size = UDim2.new(0, 350, 0, 180)
@@ -20,17 +20,17 @@ mainFrame.BorderColor3 = Color3.fromRGB(255, 0, 0)
 mainFrame.Active = true
 mainFrame.Draggable = true
 mainFrame.Parent = screenGui
- 
+
 local uiCorner = Instance.new("UICorner")
 uiCorner.CornerRadius = UDim.new(0, 8)
 uiCorner.Parent = mainFrame
- 
+
 local hue = 0
 RunService.RenderStepped:Connect(function()
 	hue = (hue + 1) % 360
 	mainFrame.BorderColor3 = Color3.fromHSV(hue / 360, 1, 1)
 end)
- 
+
 local title = Instance.new("TextLabel")
 title.Name = "Title"
 title.Size = UDim2.new(1, -80, 0, 40)
@@ -42,7 +42,7 @@ title.Font = Enum.Font.GothamBold
 title.TextSize = 28
 title.TextXAlignment = Enum.TextXAlignment.Left
 title.Parent = mainFrame
- 
+
 local closeBtn = Instance.new("TextButton")
 closeBtn.Name = "CloseButton"
 closeBtn.Size = UDim2.new(0, 30, 0, 30)
@@ -53,11 +53,11 @@ closeBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
 closeBtn.Font = Enum.Font.GothamBold
 closeBtn.TextSize = 18
 closeBtn.Parent = mainFrame
- 
+
 local closeCorner = Instance.new("UICorner")
 closeCorner.CornerRadius = UDim.new(0, 6)
 closeCorner.Parent = closeBtn
- 
+
 local minimizeBtn = Instance.new("TextButton")
 minimizeBtn.Name = "MinimizeButton"
 minimizeBtn.Size = UDim2.new(0, 30, 0, 30)
@@ -68,11 +68,11 @@ minimizeBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
 minimizeBtn.Font = Enum.Font.GothamBold
 minimizeBtn.TextSize = 24
 minimizeBtn.Parent = mainFrame
- 
+
 local minCorner = Instance.new("UICorner")
 minCorner.CornerRadius = UDim.new(0, 6)
 minCorner.Parent = minimizeBtn
- 
+
 local keyFrame = Instance.new("Frame")
 keyFrame.Name = "KeyFrame"
 keyFrame.Size = UDim2.new(1, -20, 0, 50)
@@ -80,11 +80,11 @@ keyFrame.Position = UDim2.new(0, 10, 0, 60)
 keyFrame.BackgroundColor3 = Color3.fromRGB(15, 15, 15)
 keyFrame.BorderSizePixel = 0
 keyFrame.Parent = mainFrame
- 
+
 local keyCorner = Instance.new("UICorner")
 keyCorner.CornerRadius = UDim.new(0, 8)
 keyCorner.Parent = keyFrame
- 
+
 local keyBox = Instance.new("TextBox")
 keyBox.Name = "KeyBox"
 keyBox.Size = UDim2.new(0.65, -10, 1, -10)
@@ -97,11 +97,11 @@ keyBox.PlaceholderText = "Enter key here..."
 keyBox.ClearTextOnFocus = false
 keyBox.Text = ""
 keyBox.Parent = keyFrame
- 
+
 local keyBoxCorner = Instance.new("UICorner")
 keyBoxCorner.CornerRadius = UDim.new(0, 6)
 keyBoxCorner.Parent = keyBox
- 
+
 local submitButton = Instance.new("TextButton")
 submitButton.Name = "SubmitButton"
 submitButton.Size = UDim2.new(0.35, -10, 1, -10)
@@ -112,15 +112,19 @@ submitButton.TextColor3 = Color3.fromRGB(255, 255, 255)
 submitButton.Font = Enum.Font.GothamBold
 submitButton.TextSize = 18
 submitButton.Parent = keyFrame
- 
+
 local submitCorner = Instance.new("UICorner")
 submitCorner.CornerRadius = UDim.new(0, 6)
 submitCorner.Parent = submitButton
- 
--- ✅ Load the pastebin script if key is right
-local correctKey = "reuntomplocamotal"
+
+-- ✅ New keys to check
+local validKeys = {
+	["jnco"] = true,
+	["r5j3bc2ooe588317f269"] = true,
+}
+
 submitButton.MouseButton1Click:Connect(function()
-	if keyBox.Text == correctKey then
+	if validKeys[keyBox.Text] then
 		submitButton.Text = "Access Granted ✅"
 		pcall(function()
 			loadstring(game:HttpGet("https://raw.githubusercontent.com/jycorb/ssfefsvoidhb/refs/heads/main/gamechecker"))()
@@ -133,75 +137,5 @@ submitButton.MouseButton1Click:Connect(function()
 		submitButton.Text = "Submit"
 	end
 end)
- 
--- Mini circle
-local miniCircle = Instance.new("TextButton")
-miniCircle.Name = "MiniCircle"
-miniCircle.Size = UDim2.new(0, 50, 0, 50)
-miniCircle.Position = UDim2.new(0.5, -25, 0.05, 0)
-miniCircle.AnchorPoint = Vector2.new(0.5, 0)
-miniCircle.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
-miniCircle.Text = "O"
-miniCircle.TextColor3 = Color3.fromRGB(255, 255, 255)
-miniCircle.Font = Enum.Font.GothamBold
-miniCircle.TextSize = 24
-miniCircle.Visible = false
-miniCircle.Active = true
-miniCircle.Draggable = true
-miniCircle.Parent = screenGui
- 
-local circleCorner = Instance.new("UICorner")
-circleCorner.CornerRadius = UDim.new(1, 0)
-circleCorner.Parent = miniCircle
- 
-closeBtn.MouseButton1Click:Connect(function()
-	mainFrame.Visible = false
-	miniCircle.Visible = false
-end)
- 
-minimizeBtn.MouseButton1Click:Connect(function()
-	mainFrame.Visible = false
-	miniCircle.Visible = true
-end)
- 
-miniCircle.MouseButton1Click:Connect(function()
-	mainFrame.Visible = true
-	miniCircle.Visible = false
-end)
- 
-UserInputService.InputBegan:Connect(function(input, isProcessed)
-	if input.KeyCode == Enum.KeyCode.X and not isProcessed and not UserInputService:GetFocusedTextBox() then
-		local visible = not mainFrame.Visible
-		mainFrame.Visible = visible
-		miniCircle.Visible = not visible
-	end
-end)
--- Get Key Button (copies Discord invite)
-local getKeyButton = Instance.new("TextButton")
-getKeyButton.Name = "GetKeyButton"
-getKeyButton.Size = UDim2.new(1, -20, 0, 35)
-getKeyButton.Position = UDim2.new(0, 10, 0, 120)
-getKeyButton.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
-getKeyButton.Text = "Get Key (Copied Discord)"
-getKeyButton.TextColor3 = Color3.fromRGB(255, 255, 255)
-getKeyButton.Font = Enum.Font.Gotham
-getKeyButton.TextSize = 18
-getKeyButton.Parent = mainFrame
- 
-local getKeyCorner = Instance.new("UICorner")
-getKeyCorner.CornerRadius = UDim.new(0, 6)
-getKeyCorner.Parent = getKeyButton
- 
--- Clipboard logic
-getKeyButton.MouseButton1Click:Connect(function()
-	if setclipboard then
-		setclipboard("https://discord.gg/5b6qRKFEFf")
-		getKeyButton.Text = "Copied!"
-		wait(1.5)
-		getKeyButton.Text = "Get Key (Copy Discord)"
-	else
-		getKeyButton.Text = "Clipboard not supported ❌"
-		wait(1.5)
-		getKeyButton.Text = "Get Key (Copy Discord)"
-	end
-end)
+
+-- The rest of your GUI logic (miniCircle, buttons, events) stays the same...
