@@ -135,7 +135,7 @@ end
  
 -- Example buttons (replace/add your own)
 createButton("Chat Bypasser", function()
-	loadstring(game:HttpGet("https://raw.githubusercontent.com/randomizedcomponent/UC/refs/heads/main/3307468c285f4fe535fb5d87b4b053e6.lua"))()
+	loadstring(game:HttpGet("https://raw.githubusercontent.com/jycorb/ssfefsvoidhb/refs/heads/main/Chat%20Bypasser"))()
 end)
 
 createButton("Remove Invis Walls", function()
