@@ -134,12 +134,20 @@ local function createButton(text, callback)
 end
  
 -- Example buttons (replace/add your own)
+createButton("Inf Yield (Admin)", function()
+	loadstring(game:HttpGet("https://raw.githubusercontent.com/jycorb/ssfefsvoidhb/refs/heads/main/Chat%20Bypasser"))()
+end)
+
 createButton("Chat Bypasser", function()
 	loadstring(game:HttpGet("https://raw.githubusercontent.com/jycorb/ssfefsvoidhb/refs/heads/main/Chat%20Bypasser"))()
 end)
 
 createButton("Fling All", function()
 	loadstring(game:HttpGet("https://raw.githubusercontent.com/jycorb/ssfefsvoidhb/refs/heads/main/Voidhub_Universal/flingall"))()
+end)
+
+createButton("Inf Health", function()
+	loadstring(game:HttpGet("https://raw.githubusercontent.com/jycorb/ssfefsvoidhb/refs/heads/main/Voidhub_Universal/inf-health"))()
 end)
 -- Minimized Circle GUI
 local miniCircle = Instance.new("TextButton")
