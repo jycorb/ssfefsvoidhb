@@ -1,0 +1,182 @@
+local StarterGui = game:GetService("StarterGui")
+
+StarterGui:SetCore("SendNotification", {
+    Title = "Successfully loaded fling all ✅",
+    Text = "Press K to toggle fling all",
+    Duration = 15 -- seconds the notification stays
+})
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+local UserInputService = game:GetService("UserInputService")
+
+local player = Players.LocalPlayer
+
+-- State toggle
+local active = true
+local teleporting = false
+local spinning = false
+
+-- Variables for instances we'll create/destroy
+local bodyVelocity, spin, humanoidChangedConn, healthRestoreConn, noclipConn, touchConn, renderSteppedConn, teleportTask
+
+local function cleanup()
+    teleporting = false
+    spinning = false
+
+    if bodyVelocity then bodyVelocity:Destroy() bodyVelocity = nil end
+    if spin then spin:Destroy() spin = nil end
+
+    if touchConn then touchConn:Disconnect() touchConn = nil end
+    if noclipConn then noclipConn:Disconnect() noclipConn = nil end
+    if renderSteppedConn then renderSteppedConn:Disconnect() renderSteppedConn = nil end
+    if healthRestoreConn then healthRestoreConn:Disconnect() healthRestoreConn = nil end
+    if humanoidChangedConn then humanoidChangedConn:Disconnect() humanoidChangedConn = nil end
+
+    if teleportTask then
+        teleportTask:Cancel()
+        teleportTask = nil
+    end
+end
+
+local function applyEffect(character)
+    local humanoid = character:WaitForChild("Humanoid")
+    local root = character:WaitForChild("HumanoidRootPart")
+
+    -- Remove non-core limbs safely
+    for _, part in ipairs(character:GetChildren()) do
+        if part:IsA("BasePart") and not table.find({"Head", "HumanoidRootPart", "Torso", "UpperTorso", "LowerTorso"}, part.Name) then
+            part:Destroy()
+        end
+    end
+
+    -- Unkillable setup
+    humanoid.MaxHealth = math.huge
+    humanoid.Health = math.huge
+    if healthRestoreConn then healthRestoreConn:Disconnect() end
+    healthRestoreConn = humanoid.HealthChanged:Connect(function(health)
+        if health < humanoid.MaxHealth then
+            humanoid.Health = humanoid.MaxHealth
+        end
+    end)
+
+    -- PlatformStand lock
+    humanoid.PlatformStand = true
+
+    -- Noclip
+    if noclipConn then noclipConn:Disconnect() end
+    noclipConn = RunService.Stepped:Connect(function()
+        for _, part in pairs(character:GetDescendants()) do
+            if part:IsA("BasePart") then
+                part.CanCollide = false
+            end
+        end
+    end)
+
+    -- BodyVelocity to freeze position
+    if bodyVelocity then bodyVelocity:Destroy() end
+    bodyVelocity = Instance.new("BodyVelocity")
+    bodyVelocity.Velocity = Vector3.new(0, 0, 0)
+    bodyVelocity.MaxForce = Vector3.new(1e9, 1e9, 1e9)
+    bodyVelocity.P = 1e5
+    bodyVelocity.Parent = root
+
+    -- BodyAngularVelocity to spin fast
+    if spin then spin:Destroy() end
+    spin = Instance.new("BodyAngularVelocity")
+    spin.AngularVelocity = Vector3.new(300, 500, 800)
+    spin.MaxTorque = Vector3.new(1e9, 1e9, 1e9)
+    spin.P = 1e6
+    spin.Parent = root
+
+    -- Fling on touch
+    if touchConn then touchConn:Disconnect() end
+    touchConn = root.Touched:Connect(function(hit)
+        local otherChar = hit:FindFirstAncestorOfClass("Model")
+        if otherChar and otherChar ~= character and otherChar:FindFirstChild("Humanoid") then
+            local hrp = otherChar:FindFirstChild("HumanoidRootPart")
+            if hrp then
+                hrp.AssemblyLinearVelocity = Vector3.new(
+                    math.random(-1,1)*999999,
+                    999999,
+                    math.random(-1,1)*999999
+                )
+            end
+        end
+    end)
+
+    -- Spin & teleport toggles
+    spinning = true
+    teleporting = true
+
+    -- Teleport + follow inside players task
+    teleportTask = task.spawn(function()
+        while teleporting do
+            local players = Players:GetPlayers()
+            if #players > 1 then
+                local target
+                repeat
+                    target = players[math.random(1,#players)]
+                until target ~= player and target.Character and target.Character:FindFirstChild("HumanoidRootPart")
+
+                local targetHRP = target.Character.HumanoidRootPart
+                local startTime = tick()
+                while tick() - startTime < 0.01 and teleporting and targetHRP and targetHRP.Parent do
+                    root.CFrame = targetHRP.CFrame
+                    RunService.Heartbeat:Wait()
+                end
+            else
+                task.wait(0.01)
+            end
+        end
+    end)
+end
+
+local function onCharacterAdded(character)
+    if active then
+        -- Wait for HumanoidRootPart
+        local hrp = character:WaitForChild("HumanoidRootPart")
+        local humanoid = character:WaitForChild("Humanoid")
+
+        applyEffect(character)
+
+        -- Re-apply PlatformStand if reset by server or others
+        if humanoidChangedConn then humanoidChangedConn:Disconnect() end
+        humanoidChangedConn = humanoid:GetPropertyChangedSignal("PlatformStand"):Connect(function()
+            if active and not humanoid.PlatformStand then
+                humanoid.PlatformStand = true
+            end
+        end)
+    end
+end
+
+-- Initial setup for current character
+if player.Character then
+    onCharacterAdded(player.Character)
+end
+
+-- Listen for respawns
+player.CharacterAdded:Connect(function(char)
+    -- Delay slightly to ensure parts load
+    task.wait(0.1)
+    if active then
+        onCharacterAdded(char)
+    end
+end)
+
+-- Toggle on/off with K
+UserInputService.InputBegan:Connect(function(input, processed)
+    if processed then return end
+    if input.KeyCode == Enum.KeyCode.K then
+        active = not active
+        if active then
+            if player.Character then
+                applyEffect(player.Character)
+            end
+        else
+            cleanup()
+            if player.Character and player.Character:FindFirstChildOfClass("Humanoid") then
+                player.Character.Humanoid.PlatformStand = false
+            end
+        end
+    end
+end)
