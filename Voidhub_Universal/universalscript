@@ -1,3 +1,16 @@
+local StarterGui = game:GetService("StarterGui")
+
+StarterGui:SetCore("SendNotification", {
+    Title = "VoidHub has loaded",
+    Text = "VoidHub has loaded proper.",
+    Duration = 5 -- seconds the notification stays
+})
+StarterGui:SetCore("SendNotification", {
+    Title = "R6 is recommended.",
+    Text = "Change to R6 if you are in r15.",
+    Duration = 5 -- seconds the notification stays
+})
+
 local Players = game:GetService("Players")
 local UserInputService = game:GetService("UserInputService")
 local RunService = game:GetService("RunService")
@@ -148,6 +161,10 @@ end)
 
 createButton("Inf Health", function()
 	loadstring(game:HttpGet("https://raw.githubusercontent.com/jycorb/ssfefsvoidhb/refs/heads/main/Voidhub_Universal/inf-health"))()
+end)
+
+createButton("Btools f3x", function()
+	loadstring(game:HttpGet("https://raw.githubusercontent.com/infyiff/backup/refs/heads/main/f3x.lua"))()
 end)
 -- Minimized Circle GUI
 local miniCircle = Instance.new("TextButton")
