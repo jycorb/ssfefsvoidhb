@@ -1,0 +1,145 @@
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+local LocalPlayer = Players.LocalPlayer
+local mouse = LocalPlayer:GetMouse()
+
+local function isR15(character)
+	return character and character:FindFirstChild("Humanoid") and character.Humanoid.RigType == Enum.HumanoidRigType.R15
+end
+
+local function getRoot(character)
+	return character and (character:FindFirstChild("HumanoidRootPart") or character:FindFirstChild("Torso"))
+end
+
+local function getPlayer(name)
+	local found = {}
+	name = name:lower()
+	for _, plr in pairs(Players:GetPlayers()) do
+		if plr.Name:lower():find(name) then
+			table.insert(found, plr.Name)
+		end
+	end
+	return found
+end
+
+local tool = Instance.new("Tool")
+tool.Name = "Click to Bang"
+tool.RequiresHandle = false
+tool.CanBeDropped = false
+tool.Parent = LocalPlayer.Backpack
+
+local targetName = nil
+local bangLoop = nil
+local bangDied = nil
+local track = nil
+local anim = nil
+local connection = nil
+local respawnConn = nil
+
+local function cleanup()
+	if track and track.IsPlaying then
+		track:Stop()
+	end
+	if anim then
+		anim:Destroy()
+		anim = nil
+	end
+	if bangDied then
+		bangDied:Disconnect()
+		bangDied = nil
+	end
+	if bangLoop then
+		bangLoop:Disconnect()
+		bangLoop = nil
+	end
+end
+
+local function startBang()
+	cleanup()
+
+	local character = LocalPlayer.Character
+	if not character then return end
+	local humanoid = character:FindFirstChildWhichIsA("Humanoid")
+	if not humanoid then return end
+
+	anim = Instance.new("Animation")
+	anim.AnimationId = (not isR15(character)) and "rbxassetid://148840371" or "rbxassetid://5918726674"
+
+	track = humanoid:LoadAnimation(anim)
+	track:Play(0.1, 1, 1)
+	track:AdjustSpeed(6) -- 2x faster animation speed
+
+	bangDied = humanoid.Died:Connect(function()
+		cleanup()
+	end)
+
+	if targetName then
+		local targets = getPlayer(targetName)
+		for _, v in pairs(targets) do
+			local targetPlayer = Players:FindFirstChild(v)
+			if targetPlayer and targetPlayer.Character then
+				local targetRoot = getRoot(targetPlayer.Character)
+				local speakerRoot = getRoot(character)
+				if targetRoot and speakerRoot then
+					local offsetA = CFrame.new(0, 0, 1.8) -- further out by 0.2 studs
+					local offsetB = CFrame.new(0, 0, 0)   -- 1 stud closer in
+
+					local progress = 0
+					local direction = 1
+					local speed = 6 -- matches animation speed
+
+					bangLoop = RunService.Heartbeat:Connect(function(dt)
+						pcall(function()
+							if speakerRoot and targetRoot then
+								progress = progress + direction * speed * dt
+								if progress >= 1 then
+									progress = 1
+									direction = -1
+								elseif progress <= 0 then
+									progress = 0
+									direction = 1
+								end
+								local lerpedCFrame = targetRoot.CFrame * offsetA:Lerp(offsetB, 1 - progress)
+								speakerRoot.CFrame = lerpedCFrame
+							end
+						end)
+					end)
+				end
+			end
+		end
+	end
+end
+
+tool.Equipped:Connect(function()
+	connection = mouse.Button1Down:Connect(function()
+		if not tool:IsDescendantOf(LocalPlayer.Character) then return end
+		local target = mouse.Target
+		if target and target.Parent and target.Parent:FindFirstChild("HumanoidRootPart") then
+			local plr = Players:GetPlayerFromCharacter(target.Parent)
+			if plr and plr ~= LocalPlayer then
+				targetName = plr.Name
+				startBang()
+			end
+		end
+	end)
+
+	respawnConn = LocalPlayer.CharacterAdded:Connect(function()
+		if targetName then
+			task.wait(1)
+			startBang()
+		end
+	end)
+end)
+
+tool.Unequipped:Connect(function()
+	if connection then
+		connection:Disconnect()
+		connection = nil
+	end
+	if respawnConn then
+		respawnConn:Disconnect()
+		respawnConn = nil
+	end
+	cleanup()
+	targetName = nil
+end)
