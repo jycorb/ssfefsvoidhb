@@ -1,0 +1,52 @@
+local Players = game:GetService("Players")
+local lp = Players.LocalPlayer
+
+local function hardLockHealth()
+	while true do
+		local char = lp.Character
+		if char then
+			local humanoid = char:FindFirstChildOfClass("Humanoid")
+
+			if humanoid then
+				-- Keep health at 100 constantly
+				humanoid.Health = 100
+
+				-- Lock .Health against changes
+				pcall(function()
+					humanoid:GetPropertyChangedSignal("Health"):Connect(function()
+						if humanoid.Health ~= 100 then
+							humanoid.Health = 100
+						end
+					end)
+				end)
+
+				-- Attempt to disable TakeDamage (only works in exploit context)
+				pcall(function()
+					setreadonly(humanoid, false)
+					humanoid.TakeDamage = function() end
+					setreadonly(humanoid, true)
+				end)
+
+				-- Reapply if Humanoid is removed
+				char.DescendantRemoving:Connect(function(obj)
+					if obj == humanoid then
+						task.wait(0.5)
+						hardLockHealth()
+					end
+				end)
+			end
+		end
+		task.wait(0.1)
+	end
+end
+
+-- On new character spawn
+lp.CharacterAdded:Connect(function()
+	task.wait(1)
+	hardLockHealth()
+end)
+
+-- In case already spawned
+if lp.Character then
+	hardLockHealth()
+end
