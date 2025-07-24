@@ -1,0 +1,31 @@
+local Players = game:GetService("Players")
+local StarterGui = game:GetService("StarterGui")
+local LocalPlayer = Players.LocalPlayer
+
+-- Enable shift lock toggle immediately (before character loads)
+LocalPlayer.DevEnableMouseLock = true
+
+local function SetupCamera(char)
+    local humanoid = char:WaitForChild("Humanoid")
+    local camera = workspace.CurrentCamera
+
+    LocalPlayer.CameraMaxZoomDistance = 100
+    LocalPlayer.CameraMinZoomDistance = 0
+    LocalPlayer.CameraMode = Enum.CameraMode.Classic
+    camera.CameraSubject = humanoid
+
+    -- Notify after camera is set up (delay a bit for safety)
+    task.delay(0.5, function()
+        StarterGui:SetCore("SendNotification", {
+            Title = "Third Person has been forced",
+            Text = "You can zoom out now. -voidhub",
+            Duration = 5
+        })
+    end)
+end
+
+if LocalPlayer.Character then
+    SetupCamera(LocalPlayer.Character)
+end
+
+LocalPlayer.CharacterAdded:Connect(SetupCamera)
