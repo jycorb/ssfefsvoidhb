@@ -1,0 +1,247 @@
+--notif
+local StarterGui = game:GetService("StarterGui")
+
+StarterGui:SetCore("SendNotification", {
+	Title = "Voidhub",
+	Text = "Thank you for using Voidhub.",
+	Duration = 5
+})
+
+-- GUI Setup
+local ScreenGui = Instance.new("ScreenGui")
+local MainFrame = Instance.new("Frame")
+local UICorner = Instance.new("UICorner")
+local TitleBar = Instance.new("Frame")
+local Title = Instance.new("TextLabel")
+local Description = Instance.new("TextLabel")
+local CloseButton = Instance.new("TextButton")
+local ButtonContainer = Instance.new("Frame")
+local UIListLayout = Instance.new("UIListLayout")
+
+-- Parent GUI
+ScreenGui.Name = "FraudGUI"
+ScreenGui.ResetOnSpawn = false
+ScreenGui.Parent = game:GetService("CoreGui")
+
+-- Main Frame
+MainFrame.Name = "MainFrame"
+MainFrame.Parent = ScreenGui
+MainFrame.BackgroundColor3 = Color3.fromRGB(54, 57, 63)
+MainFrame.BorderSizePixel = 0
+MainFrame.Position = UDim2.new(0.4, 0, 0.3, 0)
+MainFrame.Size = UDim2.new(0, 240, 0, 250)
+MainFrame.Active = true
+MainFrame.Draggable = true
+
+UICorner.CornerRadius = UDim.new(0, 10)
+UICorner.Parent = MainFrame
+
+-- Title Bar
+TitleBar.Name = "TitleBar"
+TitleBar.Parent = MainFrame
+TitleBar.BackgroundColor3 = Color3.fromRGB(47, 49, 54)
+TitleBar.BorderSizePixel = 0
+TitleBar.Size = UDim2.new(1, 0, 0, 50)
+
+local TopCorner = Instance.new("UICorner")
+TopCorner.CornerRadius = UDim.new(0, 10)
+TopCorner.Parent = TitleBar
+
+-- Title Text
+Title.Name = "Title"
+Title.Parent = TitleBar
+Title.BackgroundTransparency = 1
+Title.Position = UDim2.new(0, 10, 0, 2)
+Title.Size = UDim2.new(1, -50, 0.5, 0)
+Title.Font = Enum.Font.GothamBold
+Title.Text = "Fraud Animation VOIDHUB (R6)"
+Title.TextColor3 = Color3.fromRGB(255, 255, 255)
+Title.TextSize = 16
+Title.TextXAlignment = Enum.TextXAlignment.Left
+
+-- Description Text
+Description.Name = "Description"
+Description.Parent = TitleBar
+Description.BackgroundTransparency = 1
+Description.Position = UDim2.new(0, 10, 0.5, -2)
+Description.Size = UDim2.new(1, -50, 0.5, 0)
+Description.Font = Enum.Font.Gotham
+Description.Text = "Created by brick.zip"
+Description.TextColor3 = Color3.fromRGB(170, 170, 170)
+Description.TextSize = 12
+Description.TextXAlignment = Enum.TextXAlignment.Left
+Description.TextYAlignment = Enum.TextYAlignment.Top
+
+-- Close Button
+CloseButton.Name = "CloseButton"
+CloseButton.Parent = TitleBar
+CloseButton.BackgroundColor3 = Color3.fromRGB(240, 71, 71)
+CloseButton.BorderSizePixel = 0
+CloseButton.Position = UDim2.new(1, -35, 0.5, -12)
+CloseButton.Size = UDim2.new(0, 25, 0, 25)
+CloseButton.Font = Enum.Font.GothamBold
+CloseButton.Text = "X"
+CloseButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+CloseButton.TextSize = 16
+
+local XCorner = Instance.new("UICorner")
+XCorner.CornerRadius = UDim.new(1, 0)
+XCorner.Parent = CloseButton
+
+CloseButton.MouseButton1Click:Connect(function()
+	ScreenGui:Destroy()
+end)
+
+-- Button Container
+ButtonContainer.Name = "ButtonContainer"
+ButtonContainer.Parent = MainFrame
+ButtonContainer.BackgroundTransparency = 1
+ButtonContainer.Position = UDim2.new(0, 10, 0, 60)
+ButtonContainer.Size = UDim2.new(1, -20, 1, -70)
+
+UIListLayout.Parent = ButtonContainer
+UIListLayout.SortOrder = Enum.SortOrder.LayoutOrder
+UIListLayout.Padding = UDim.new(0, 8)
+
+-- Wave Button
+local WaveButton = Instance.new("TextButton")
+WaveButton.Name = "WaveButton"
+WaveButton.Parent = ButtonContainer
+WaveButton.BackgroundColor3 = Color3.fromRGB(88, 101, 242)
+WaveButton.Size = UDim2.new(1, 0, 0, 35)
+WaveButton.Font = Enum.Font.GothamBold
+WaveButton.Text = "Wave"
+WaveButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+WaveButton.TextSize = 16
+
+local WaveCorner = Instance.new("UICorner")
+WaveCorner.CornerRadius = UDim.new(0, 6)
+WaveCorner.Parent = WaveButton
+
+-- Chase Button
+local ChaseButton = Instance.new("TextButton")
+ChaseButton.Name = "ChaseButton"
+ChaseButton.Parent = ButtonContainer
+ChaseButton.BackgroundColor3 = Color3.fromRGB(240, 71, 71)
+ChaseButton.Size = UDim2.new(1, 0, 0, 35)
+ChaseButton.Font = Enum.Font.GothamBold
+ChaseButton.Text = "CHASE!"
+ChaseButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+ChaseButton.TextSize = 16
+
+local ChaseCorner = Instance.new("UICorner")
+ChaseCorner.CornerRadius = UDim.new(0, 6)
+ChaseCorner.Parent = ChaseButton
+
+-- Variables for animations
+local chaseTrack = nil
+local wavePlaying = false
+
+-- Wave Button Logic
+WaveButton.MouseButton1Click:Connect(function()
+	local plr = game:GetService("Players").LocalPlayer
+	local char = plr.Character or plr.CharacterAdded:Wait()
+	local hum = char:FindFirstChildOfClass("Humanoid")
+	if not hum then return end
+
+	if wavePlaying then return end -- Prevent spamming wave
+
+	wavePlaying = true
+	local originalSpeed = hum.WalkSpeed
+	hum.WalkSpeed = 0
+
+	task.delay(0.1, function()
+		for _, track in ipairs(hum:GetPlayingAnimationTracks()) do
+			track:Stop()
+		end
+
+		local anim = Instance.new("Animation")
+		anim.AnimationId = "rbxassetid://338319227"
+		local track = hum:LoadAnimation(anim)
+		track.Looped = false
+		track:Play()
+
+		track.Stopped:Connect(function()
+			if hum then
+				-- Only restore speed if chase is NOT playing
+				if not (chaseTrack and chaseTrack.IsPlaying) then
+					hum.WalkSpeed = originalSpeed
+				end
+				wavePlaying = false
+			end
+		end)
+	end)
+end)
+
+-- Chase Button Logic
+local chaseTrack = nil
+local originalSpeedChase = nil
+ChaseButton.MouseButton1Click:Connect(function()
+	local plr = game:GetService("Players").LocalPlayer
+	local char = plr.Character or plr.CharacterAdded:Wait()
+	local hum = char:FindFirstChildOfClass("Humanoid")
+	if not hum then return end
+
+	if chaseTrack and chaseTrack.IsPlaying then
+		chaseTrack:Stop()
+		chaseTrack = nil
+
+		if originalSpeedChase then
+			hum.WalkSpeed = originalSpeedChase
+			originalSpeedChase = nil
+		end
+		return
+	end
+
+	-- Save original speed only if not saved
+	if not originalSpeedChase then
+		originalSpeedChase = hum.WalkSpeed
+	end
+
+	local anim = Instance.new("Animation")
+	anim.AnimationId = "rbxassetid://338418294"
+	chaseTrack = hum:LoadAnimation(anim)
+	chaseTrack.Looped = true
+	chaseTrack:Play()
+
+	hum.WalkSpeed = 35
+end)
+
+-- Fix Speed Button
+local FixSpeedButton = Instance.new("TextButton")
+FixSpeedButton.Name = "FixSpeedButton"
+FixSpeedButton.Parent = ButtonContainer
+FixSpeedButton.BackgroundColor3 = Color3.fromRGB(88, 101, 115) -- Discord grey
+FixSpeedButton.Size = UDim2.new(1, 0, 0, 35)
+FixSpeedButton.Font = Enum.Font.GothamBold
+FixSpeedButton.Text = "Fix speed"
+FixSpeedButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+FixSpeedButton.TextSize = 16
+
+local FixSpeedCorner = Instance.new("UICorner")
+FixSpeedCorner.CornerRadius = UDim.new(0, 6)
+FixSpeedCorner.Parent = FixSpeedButton
+
+FixSpeedButton.MouseButton1Click:Connect(function()
+	local plr = game:GetService("Players").LocalPlayer
+	local char = plr.Character or plr.CharacterAdded:Wait()
+	local hum = char:FindFirstChildOfClass("Humanoid")
+	if hum then
+		hum.WalkSpeed = 16
+	end
+end)
+
+-- Footer Label
+local Footer = Instance.new("TextLabel")
+Footer.Name = "Footer"
+Footer.Parent = MainFrame
+Footer.Size = UDim2.new(1, 0, 0, 20)
+Footer.Position = UDim2.new(0, 0, 1, -22)
+Footer.BackgroundTransparency = 1
+Footer.Text = "Thank you for using Voidhub <3"
+Footer.TextColor3 = Color3.fromRGB(200, 200, 200)
+Footer.TextSize = 14
+Footer.Font = Enum.Font.GothamSemibold
+Footer.TextStrokeTransparency = 0.8
+Footer.TextWrapped = true
+Footer.TextYAlignment = Enum.TextYAlignment.Bottom
