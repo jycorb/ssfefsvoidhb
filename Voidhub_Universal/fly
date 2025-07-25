@@ -1,3 +1,5 @@
+--voidhub fly
+
 local savedSpeed = 50
 
 local function gui()
@@ -13,11 +15,11 @@ local function gui()
     local baseSpeed = savedSpeed
     local flySpeed = baseSpeed
     local flying = false
-    local forwardHold = 0
     local inputFlags = { forward = false, back = false, left = false, right = false, up = false, down = false }
 
     local bodyVelocity = Instance.new("BodyVelocity")
     bodyVelocity.MaxForce = Vector3.new(1e5, 1e5, 1e5)
+    bodyVelocity.Velocity = Vector3.zero
 
     local bodyGyro = Instance.new("BodyGyro")
     bodyGyro.MaxTorque = Vector3.new(1e5, 1e5, 1e5)
@@ -27,15 +29,11 @@ local function gui()
     screenGui.ResetOnSpawn = false
     screenGui.Parent = player:WaitForChild("PlayerGui")
 
-    -- 💀 Delete GUI on death
     humanoid.Died:Connect(function()
-        if screenGui then
-            screenGui:Destroy()
-        end
+        if screenGui then screenGui:Destroy() end
     end)
 
     local toggleButton = Instance.new("TextButton")
-    toggleButton.Name = "ToggleFlyButton"
     toggleButton.Text = "Fly OFF"
     toggleButton.Size = UDim2.new(0, 100, 0, 50)
     toggleButton.Position = UDim2.new(1, -220, 0, 10)
@@ -47,7 +45,6 @@ local function gui()
     toggleButton.Parent = screenGui
 
     local speedBox = Instance.new("TextBox")
-    speedBox.Name = "SpeedBox"
     speedBox.Text = tostring(baseSpeed)
     speedBox.Size = UDim2.new(0, 100, 0, 50)
     speedBox.Position = UDim2.new(1, -110, 0, 10)
@@ -60,7 +57,6 @@ local function gui()
 
     local function startFlying()
         flying = true
-        forwardHold = 0
         flySpeed = baseSpeed
         bodyVelocity.Parent = HRP
         bodyGyro.Parent = HRP
@@ -95,8 +91,9 @@ local function gui()
         end
     end)
 
-    UserInputService.InputBegan:Connect(function(input, gameProcessed)
-        if gameProcessed then return end
+    -- Keyboard input for PC
+    UserInputService.InputBegan:Connect(function(input, gpe)
+        if gpe then return end
         if input.KeyCode == Enum.KeyCode.W then inputFlags.forward = true end
         if input.KeyCode == Enum.KeyCode.S then inputFlags.back = true end
         if input.KeyCode == Enum.KeyCode.A then inputFlags.left = true end
@@ -114,14 +111,13 @@ local function gui()
         if input.KeyCode == Enum.KeyCode.Q then inputFlags.down = false end
     end)
 
-    RunService.RenderStepped:Connect(function(dt)
+    RunService.RenderStepped:Connect(function()
         if not flying then return end
-
-        if not inputFlags.forward then forwardHold = 0 end
 
         local dir = Vector3.zero
         local camCF = Camera.CFrame
 
+        -- PC input flags
         if inputFlags.forward then dir += camCF.LookVector end
         if inputFlags.back then dir -= camCF.LookVector end
         if inputFlags.left then dir -= camCF.RightVector end
@@ -129,24 +125,37 @@ local function gui()
         if inputFlags.up then dir += Vector3.yAxis end
         if inputFlags.down then dir -= Vector3.yAxis end
 
-        if dir.Magnitude > 0 then dir = dir.Unit end
+        -- Mobile joystick fallback only if no PC input
+        local moveDir = humanoid.MoveDirection
+        if moveDir.Magnitude > 0 and dir.Magnitude == 0 then
+            dir = camCF:VectorToWorldSpace(moveDir).Unit
+        end
 
-        local currentVelocity = bodyVelocity.Velocity
-        local targetVelocity = dir * flySpeed
-        bodyVelocity.Velocity = currentVelocity:Lerp(targetVelocity, 0.05)
+        local targetVelocity = Vector3.zero
+        if dir.Magnitude > 0 then
+            targetVelocity = dir.Unit * flySpeed
+        end
 
-        -- Pitch and roll calculations
-        local pitch = 0
-        local roll = 0
+        -- Smooth lerp for smoother stopping (lower number = smoother/slower stop)
+        bodyVelocity.Velocity = bodyVelocity.Velocity:Lerp(targetVelocity, 0.03)
 
-        if inputFlags.forward then pitch = math.rad(-15) end
-        if inputFlags.back then pitch = math.rad(15) end
-        if inputFlags.left then roll = math.rad(5) end
-        if inputFlags.right then roll = math.rad(-5) end
+        -- Full 3D rotation to face camera direction + pitch/roll banking
+        local lookVector = camCF.LookVector
+        if lookVector.Magnitude > 0 then
+            local goalCFrame = CFrame.new(HRP.Position, HRP.Position + lookVector)
 
-        local direction = camCF.LookVector
-        local goalCFrame = CFrame.new(HRP.Position, HRP.Position + direction) * CFrame.Angles(pitch, 0, roll)
-        bodyGyro.CFrame = bodyGyro.CFrame:Lerp(goalCFrame, 0.1)
+            -- Pitch and roll based on input only when moving
+            local pitch, roll = 0, 0
+            if dir.Magnitude > 0 then
+                if inputFlags.forward then pitch = math.rad(-15) end
+                if inputFlags.back then pitch = math.rad(15) end
+                if inputFlags.left then roll = math.rad(5) end
+                if inputFlags.right then roll = math.rad(-5) end
+            end
+
+            goalCFrame = goalCFrame * CFrame.Angles(pitch, 0, roll)
+            bodyGyro.CFrame = bodyGyro.CFrame:Lerp(goalCFrame, 0.1)
+        end
     end)
 end
 
