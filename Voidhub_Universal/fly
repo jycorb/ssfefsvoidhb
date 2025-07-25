@@ -1,3 +1,5 @@
+--took so long to make btw
+--made by brick.zip
 local savedSpeed = 50
 
 local function gui()
