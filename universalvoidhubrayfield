@@ -1,4 +1,4 @@
---test
+--niggas
 local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
 
 local Window = Rayfield:CreateWindow({
@@ -167,22 +167,26 @@ local function spawnBrickUnder()
 	end)
 end
 
-local function onJump(actionName, inputState)
-	if not infJumpEnabled then return Enum.ContextActionResult.Pass end
-	if inputState == Enum.UserInputState.Begin and not debounce then
+local function onJumpAction(_, inputState, _)
+	if not infJumpEnabled or debounce then return Enum.ContextActionResult.Pass end
+
+	if inputState == Enum.UserInputState.Begin then
 		debounce = true
 		spawnBrickUnder()
 		task.delay(0.05, function()
 			debounce = false
 		end)
 	end
+
 	return Enum.ContextActionResult.Pass
 end
 
 local function onCharacterAdded(char)
 	Character = char
 	Humanoid = char:WaitForChild("Humanoid")
-	ContextActionService:BindAction("TrackJumpInput", onJump, false, Enum.PlayerActions.CharacterJump)
+
+	-- bind non-blocking listener for jump button/spacebar/etc.
+	ContextActionService:BindActionAtPriority("JumpBrickSpawn", onJumpAction, false, 2000, Enum.PlayerActions.CharacterJump)
 end
 
 if LocalPlayer.Character then
@@ -191,7 +195,7 @@ end
 
 LocalPlayer.CharacterAdded:Connect(onCharacterAdded)
 
--- Replace MainTab with your actual reference
+-- Replace MainTab with your actual UI reference
 local Toggle = MainTab:CreateToggle({
 	Name = "Inf Jump Undetected",
 	CurrentValue = false,
