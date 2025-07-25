@@ -1,4 +1,3 @@
---voidhub fly smoothly brick.zip made ts
 local savedSpeed = 50
 
 local function gui()
@@ -14,23 +13,25 @@ local function gui()
     local baseSpeed = savedSpeed
     local flySpeed = baseSpeed
     local flying = false
+    local forwardHold = 0
     local inputFlags = { forward = false, back = false, left = false, right = false, up = false, down = false }
 
     local bodyVelocity = Instance.new("BodyVelocity")
     bodyVelocity.MaxForce = Vector3.new(1e5, 1e5, 1e5)
-    bodyVelocity.Velocity = Vector3.zero
 
     local bodyGyro = Instance.new("BodyGyro")
     bodyGyro.MaxTorque = Vector3.new(1e5, 1e5, 1e5)
-    bodyGyro.CFrame = HRP.CFrame
 
     local screenGui = Instance.new("ScreenGui")
     screenGui.Name = "FlyScreenGui"
     screenGui.ResetOnSpawn = false
     screenGui.Parent = player:WaitForChild("PlayerGui")
 
+    -- Delete GUI on death
     humanoid.Died:Connect(function()
-        if screenGui then screenGui:Destroy() end
+        if screenGui then
+            screenGui:Destroy()
+        end
     end)
 
     local toggleButton = Instance.new("TextButton")
@@ -59,15 +60,18 @@ local function gui()
 
     local function startFlying()
         flying = true
+        forwardHold = 0
         flySpeed = baseSpeed
         bodyVelocity.Parent = HRP
         bodyGyro.Parent = HRP
+        humanoid.PlatformStand = true
     end
 
     local function stopFlying()
         flying = false
         bodyVelocity.Parent = nil
         bodyGyro.Parent = nil
+        humanoid.PlatformStand = false
     end
 
     toggleButton.MouseButton1Click:Connect(function()
@@ -91,6 +95,7 @@ local function gui()
         end
     end)
 
+    -- Keyboard movement
     UserInputService.InputBegan:Connect(function(input, gameProcessed)
         if gameProcessed then return end
         if input.KeyCode == Enum.KeyCode.W then inputFlags.forward = true end
@@ -110,8 +115,10 @@ local function gui()
         if input.KeyCode == Enum.KeyCode.Q then inputFlags.down = false end
     end)
 
-    RunService.RenderStepped:Connect(function()
+    RunService.RenderStepped:Connect(function(dt)
         if not flying then return end
+
+        if not inputFlags.forward then forwardHold = 0 end
 
         local camCF = Camera.CFrame
         local camLook = camCF.LookVector
@@ -119,8 +126,6 @@ local function gui()
         local camUp = camCF.UpVector
 
         local dir = Vector3.zero
-
-        -- PC controls
         if inputFlags.forward then dir += camLook end
         if inputFlags.back then dir -= camLook end
         if inputFlags.left then dir -= camRight end
@@ -133,14 +138,23 @@ local function gui()
             dir = dir.Unit
         end
 
+        -- Smooth movement and stopping
+        local currentVelocity = bodyVelocity.Velocity
         local targetVelocity = dir * flySpeed
+        local lerpFactor = (dir.Magnitude > 0) and 0.08 or 0.04
+        bodyVelocity.Velocity = currentVelocity:Lerp(targetVelocity, lerpFactor)
 
-        -- Smooth acceleration and deceleration
-        bodyVelocity.Velocity = bodyVelocity.Velocity:Lerp(targetVelocity, 0.08)
+        -- BodyGyro follows camera facing
+        local pitch = 0
+        local roll = 0
+        if inputFlags.forward then pitch = math.rad(-15) end
+        if inputFlags.back then pitch = math.rad(15) end
+        if inputFlags.left then roll = math.rad(5) end
+        if inputFlags.right then roll = math.rad(-5) end
 
-        -- Smooth orientation with camera (yaw and pitch)
-        local targetCF = CFrame.new(HRP.Position, HRP.Position + camLook)
-        bodyGyro.CFrame = bodyGyro.CFrame:Lerp(targetCF, 0.1)
+        local direction = camLook
+        local goalCFrame = CFrame.new(HRP.Position, HRP.Position + direction) * CFrame.Angles(pitch, 0, roll)
+        bodyGyro.CFrame = bodyGyro.CFrame:Lerp(goalCFrame, 0.15)
     end)
 end
 
