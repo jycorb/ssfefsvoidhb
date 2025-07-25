@@ -1,168 +1,182 @@
 local savedSpeed = 50
 
 local function gui()
-	local Players = game:GetService("Players")
-	local RunService = game:GetService("RunService")
-	local UserInputService = game:GetService("UserInputService")
-	local player = Players.LocalPlayer
-	local character = player.Character or player.CharacterAdded:Wait()
-	local humanoid = character:WaitForChild("Humanoid")
-	local HRP = character:WaitForChild("HumanoidRootPart")
-	local Camera = workspace.CurrentCamera
+    local Players = game:GetService("Players")
+    local RunService = game:GetService("RunService")
+    local UserInputService = game:GetService("UserInputService")
+    local player = Players.LocalPlayer
+    local character = player.Character or player.CharacterAdded:Wait()
+    local humanoid = character:WaitForChild("Humanoid")
+    local HRP = character:WaitForChild("HumanoidRootPart")
+    local Camera = workspace.CurrentCamera
 
-	local baseSpeed = savedSpeed
-	local flySpeed = baseSpeed
-	local flying = false
-	local inputFlags = { forward = false, back = false, left = false, right = false, up = false, down = false }
+    local baseSpeed = savedSpeed
+    local flySpeed = baseSpeed
+    local flying = false
+    local inputFlags = { forward = false, back = false, left = false, right = false, up = false, down = false }
 
-	local bodyVelocity = Instance.new("BodyVelocity")
-	bodyVelocity.MaxForce = Vector3.new(1e5, 1e5, 1e5)
+    local bodyVelocity = Instance.new("BodyVelocity")
+    bodyVelocity.MaxForce = Vector3.new(1e5, 1e5, 1e5)
 
-	local bodyGyro = Instance.new("BodyGyro")
-	bodyGyro.MaxTorque = Vector3.new(1e5, 1e5, 1e5)
+    local bodyGyro = Instance.new("BodyGyro")
+    bodyGyro.MaxTorque = Vector3.new(1e5, 1e5, 1e5)
 
-	local screenGui = Instance.new("ScreenGui")
-	screenGui.Name = "FlyScreenGui"
-	screenGui.ResetOnSpawn = false
-	screenGui.Parent = player:WaitForChild("PlayerGui")
+    local screenGui = Instance.new("ScreenGui")
+    screenGui.Name = "FlyScreenGui"
+    screenGui.ResetOnSpawn = false
+    screenGui.Parent = player:WaitForChild("PlayerGui")
 
-	humanoid.Died:Connect(function()
-		if screenGui then
-			screenGui:Destroy()
-		end
-	end)
+    humanoid.Died:Connect(function()
+        if screenGui then
+            screenGui:Destroy()
+        end
+    end)
 
-	local toggleButton = Instance.new("TextButton")
-	toggleButton.Name = "ToggleFlyButton"
-	toggleButton.Text = "Fly OFF"
-	toggleButton.Size = UDim2.new(0, 100, 0, 50)
-	toggleButton.Position = UDim2.new(1, -220, 0, 10)
-	toggleButton.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
-	toggleButton.TextColor3 = Color3.fromRGB(255, 255, 255)
-	toggleButton.Font = Enum.Font.GothamBold
-	toggleButton.TextScaled = true
-	toggleButton.BackgroundTransparency = 0.2
-	toggleButton.Parent = screenGui
+    local toggleButton = Instance.new("TextButton")
+    toggleButton.Name = "ToggleFlyButton"
+    toggleButton.Text = "Fly OFF"
+    toggleButton.Size = UDim2.new(0, 100, 0, 50)
+    toggleButton.Position = UDim2.new(1, -220, 0, 10)
+    toggleButton.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+    toggleButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+    toggleButton.Font = Enum.Font.GothamBold
+    toggleButton.TextScaled = true
+    toggleButton.BackgroundTransparency = 0.2
+    toggleButton.Parent = screenGui
 
-	local speedBox = Instance.new("TextBox")
-	speedBox.Name = "SpeedBox"
-	speedBox.Text = tostring(baseSpeed)
-	speedBox.Size = UDim2.new(0, 100, 0, 50)
-	speedBox.Position = UDim2.new(1, -110, 0, 10)
-	speedBox.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
-	speedBox.TextColor3 = Color3.fromRGB(255, 255, 255)
-	speedBox.Font = Enum.Font.GothamBold
-	speedBox.TextScaled = true
-	speedBox.BackgroundTransparency = 0.2
-	speedBox.Parent = screenGui
+    local speedBox = Instance.new("TextBox")
+    speedBox.Name = "SpeedBox"
+    speedBox.Text = tostring(baseSpeed)
+    speedBox.Size = UDim2.new(0, 100, 0, 50)
+    speedBox.Position = UDim2.new(1, -110, 0, 10)
+    speedBox.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+    speedBox.TextColor3 = Color3.fromRGB(255, 255, 255)
+    speedBox.Font = Enum.Font.GothamBold
+    speedBox.TextScaled = true
+    speedBox.BackgroundTransparency = 0.2
+    speedBox.Parent = screenGui
 
-	local function startFlying()
-		flying = true
-		flySpeed = baseSpeed
-		bodyVelocity.Parent = HRP
-		bodyGyro.Parent = HRP
-		humanoid.PlatformStand = true
-	end
+    local function startFlying()
+        flying = true
+        flySpeed = baseSpeed
+        bodyVelocity.Parent = HRP
+        bodyGyro.Parent = HRP
+        humanoid.PlatformStand = true
+    end
 
-	local function stopFlying()
-		flying = false
-		bodyVelocity.Parent = nil
-		bodyGyro.Parent = nil
-		humanoid.PlatformStand = false
-	end
+    local function stopFlying()
+        flying = false
+        bodyVelocity.Parent = nil
+        bodyGyro.Parent = nil
+        humanoid.PlatformStand = false
+    end
 
-	local function toggleFly()
-		character = player.Character or player.CharacterAdded:Wait()
-		humanoid = character:WaitForChild("Humanoid")
-		HRP = character:WaitForChild("HumanoidRootPart")
+    local function toggleFly()
+        character = player.Character or player.CharacterAdded:Wait()
+        humanoid = character:WaitForChild("Humanoid")
+        HRP = character:WaitForChild("HumanoidRootPart")
 
-		if flying then
-			stopFlying()
-			toggleButton.Text = "Fly OFF"
-		else
-			startFlying()
-			toggleButton.Text = "Fly ON"
-		end
-	end
+        if flying then
+            stopFlying()
+            toggleButton.Text = "Fly OFF"
+        else
+            startFlying()
+            toggleButton.Text = "Fly ON"
+        end
+    end
 
-	toggleButton.MouseButton1Click:Connect(toggleFly)
+    toggleButton.MouseButton1Click:Connect(toggleFly)
 
-	speedBox.FocusLost:Connect(function()
-		local num = tonumber(speedBox.Text)
-		if num and num > 0 then
-			baseSpeed = num
-			savedSpeed = num
-			if flying then flySpeed = baseSpeed end
-		else
-			speedBox.Text = tostring(baseSpeed)
-		end
-	end)
+    speedBox.FocusLost:Connect(function()
+        local num = tonumber(speedBox.Text)
+        if num and num > 0 then
+            baseSpeed = num
+            savedSpeed = num
+            if flying then flySpeed = baseSpeed end
+        else
+            speedBox.Text = tostring(baseSpeed)
+        end
+    end)
 
-	-- PC Input
-	if UserInputService.KeyboardEnabled then
-		UserInputService.InputBegan:Connect(function(input, gameProcessed)
-			if gameProcessed then return end
-			if input.KeyCode == Enum.KeyCode.W then inputFlags.forward = true end
-			if input.KeyCode == Enum.KeyCode.S then inputFlags.back = true end
-			if input.KeyCode == Enum.KeyCode.A then inputFlags.left = true end
-			if input.KeyCode == Enum.KeyCode.D then inputFlags.right = true end
-			if input.KeyCode == Enum.KeyCode.E then inputFlags.up = true end
-			if input.KeyCode == Enum.KeyCode.Q then inputFlags.down = true end
-		end)
+    -- PC Keyboard Input
+    if UserInputService.KeyboardEnabled then
+        UserInputService.InputBegan:Connect(function(input, gameProcessed)
+            if gameProcessed then return end
+            if input.KeyCode == Enum.KeyCode.W then inputFlags.forward = true end
+            if input.KeyCode == Enum.KeyCode.S then inputFlags.back = true end
+            if input.KeyCode == Enum.KeyCode.A then inputFlags.left = true end
+            if input.KeyCode == Enum.KeyCode.D then inputFlags.right = true end
+            if input.KeyCode == Enum.KeyCode.E then inputFlags.up = true end
+            if input.KeyCode == Enum.KeyCode.Q then inputFlags.down = true end
+        end)
 
-		UserInputService.InputEnded:Connect(function(input)
-			if input.KeyCode == Enum.KeyCode.W then inputFlags.forward = false end
-			if input.KeyCode == Enum.KeyCode.S then inputFlags.back = false end
-			if input.KeyCode == Enum.KeyCode.A then inputFlags.left = false end
-			if input.KeyCode == Enum.KeyCode.D then inputFlags.right = false end
-			if input.KeyCode == Enum.KeyCode.E then inputFlags.up = false end
-			if input.KeyCode == Enum.KeyCode.Q then inputFlags.down = false end
-		end)
-	end
+        UserInputService.InputEnded:Connect(function(input)
+            if input.KeyCode == Enum.KeyCode.W then inputFlags.forward = false end
+            if input.KeyCode == Enum.KeyCode.S then inputFlags.back = false end
+            if input.KeyCode == Enum.KeyCode.A then inputFlags.left = false end
+            if input.KeyCode == Enum.KeyCode.D then inputFlags.right = false end
+            if input.KeyCode == Enum.KeyCode.E then inputFlags.up = false end
+            if input.KeyCode == Enum.KeyCode.Q then inputFlags.down = false end
+        end)
+    end
 
-	-- Movement loop
-	RunService.RenderStepped:Connect(function()
-		if not flying then return end
+    -- Load ControlModule for mobile input
+    local controlModule
+    local playerScripts = player:WaitForChild("PlayerScripts")
+    local success
+    success, controlModule = pcall(function()
+        return require(playerScripts:WaitForChild("PlayerModule"):WaitForChild("ControlModule"))
+    end)
 
-		local camCF = Camera.CFrame
-		local camLook = camCF.LookVector
-		local camRight = camCF.RightVector
-		local camUp = camCF.UpVector
+    -- Movement loop
+    RunService.RenderStepped:Connect(function()
+        if not flying then return end
 
-		local dir = Vector3.zero
+        local camCF = Camera.CFrame
+        local camLook = camCF.LookVector
+        local camRight = camCF.RightVector
+        local camUp = camCF.UpVector
 
-		if UserInputService.TouchEnabled and not UserInputService.KeyboardEnabled then
-			-- FIXED HERE: use joystick-based movement (camera relative)
-			dir = humanoid.MoveDirection
-		else
-			if inputFlags.forward then dir += camLook end
-			if inputFlags.back then dir -= camLook end
-			if inputFlags.left then dir -= camRight end
-			if inputFlags.right then dir += camRight end
-			if inputFlags.up then dir += camUp end
-			if inputFlags.down then dir -= camUp end
-		end
+        local dir = Vector3.zero
 
-		if dir.Magnitude > 0 then
-			dir = dir.Unit
-		end
+        if UserInputService.TouchEnabled and not UserInputService.KeyboardEnabled and success and controlModule then
+            -- Mobile joystick input with ControlModule:GetMoveVector()
+            local moveVector = controlModule:GetMoveVector() -- returns Vector3
+            dir = Vector3.new(moveVector.X, 0, moveVector.Z)
+            dir = camCF:VectorToWorldSpace(dir)
+            -- For vertical movement (optional): 
+            if inputFlags.up then dir += camUp end
+            if inputFlags.down then dir -= camUp end
+        else
+            -- PC Input based on keys pressed
+            if inputFlags.forward then dir += camLook end
+            if inputFlags.back then dir -= camLook end
+            if inputFlags.left then dir -= camRight end
+            if inputFlags.right then dir += camRight end
+            if inputFlags.up then dir += camUp end
+            if inputFlags.down then dir -= camUp end
+        end
 
-		local currentVelocity = bodyVelocity.Velocity
-		local targetVelocity = dir * flySpeed
-		local lerpFactor = (dir.Magnitude > 0) and 0.08 or 0.04
-		bodyVelocity.Velocity = currentVelocity:Lerp(targetVelocity, lerpFactor)
+        if dir.Magnitude > 0 then
+            dir = dir.Unit
+        end
 
-		local pitch = 0
-		local roll = 0
-		if inputFlags.forward then pitch = math.rad(-15) end
-		if inputFlags.back then pitch = math.rad(15) end
-		if inputFlags.left then roll = math.rad(5) end
-		if inputFlags.right then roll = math.rad(-5) end
+        local currentVelocity = bodyVelocity.Velocity
+        local targetVelocity = dir * flySpeed
+        local lerpFactor = (dir.Magnitude > 0) and 0.08 or 0.04
+        bodyVelocity.Velocity = currentVelocity:Lerp(targetVelocity, lerpFactor)
 
-		local direction = camLook
-		local goalCFrame = CFrame.new(HRP.Position, HRP.Position + direction) * CFrame.Angles(pitch, 0, roll)
-		bodyGyro.CFrame = bodyGyro.CFrame:Lerp(goalCFrame, 0.15)
-	end)
+        local pitch = 0
+        local roll = 0
+        if inputFlags.forward then pitch = math.rad(-15) end
+        if inputFlags.back then pitch = math.rad(15) end
+        if inputFlags.left then roll = math.rad(5) end
+        if inputFlags.right then roll = math.rad(-5) end
+
+        local direction = camLook
+        local goalCFrame = CFrame.new(HRP.Position, HRP.Position + direction) * CFrame.Angles(pitch, 0, roll)
+        bodyGyro.CFrame = bodyGyro.CFrame:Lerp(goalCFrame, 0.15)
+    end)
 end
 
 gui()
