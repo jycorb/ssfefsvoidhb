@@ -1,0 +1,12 @@
+local Players = game:GetService("Players")
+local LocalPlayer = Players.LocalPlayer
+local Character = LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait()
+
+local targetPart = workspace:WaitForChild("tower")
+	:WaitForChild("sections")
+	:WaitForChild("finish")
+	:WaitForChild("exit")
+	:WaitForChild("ParticleBrick")
+
+local rootPart = Character:WaitForChild("HumanoidRootPart")
+rootPart.CFrame = targetPart.CFrame + Vector3.new(0, 5, 0) -- teleport above the part to avoid getting stuck
