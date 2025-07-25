@@ -1,4 +1,4 @@
---Universal Void Hub was made by me (brick.zip)
+--CHUNKYYYYYYYYYYYYYYYYYYYYYYYYY
 local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
 
 local Window = Rayfield:CreateWindow({
@@ -151,8 +151,8 @@ local function spawnBrickUnder()
 
     local brick = Instance.new("Part")
     brick.Name = "helloguy"
-    brick.Size = Vector3.new(3, 0.5, 3) -- Correct size
-    brick.Transparency = 1
+    brick.Size = Vector3.new(3, 0.5, 3)
+    brick.Transparency = 0
     brick.Color = Color3.fromRGB(255, 0, 0)
     brick.Material = Enum.Material.Neon
     brick.Anchored = true
@@ -160,26 +160,17 @@ local function spawnBrickUnder()
     brick.CFrame = hrp.CFrame * CFrame.new(0, -2.25, 0)
     brick.Parent = workspace
 
-    delay(0.1, function()
+    task.delay(0.1, function()
         if brick and brick.Parent then
             brick:Destroy()
         end
     end)
 end
 
-local function onCharacterAdded(char)
-    Character = char
-    Humanoid = char:WaitForChild("Humanoid")
-end
-
-if LocalPlayer.Character then
-    onCharacterAdded(LocalPlayer.Character)
-end
-LocalPlayer.CharacterAdded:Connect(onCharacterAdded)
-
-UserInputService.InputBegan:Connect(function(input, gameProcessed)
-    if gameProcessed or not infJumpEnabled or debounce then return end
-    if not Humanoid then return end
+local function onInputBegan(input, gameProcessed)
+    if gameProcessed then return end
+    if not infJumpEnabled then return end
+    if debounce then return end
 
     local isJumpInput =
         (input.UserInputType == Enum.UserInputType.Keyboard and input.KeyCode == Enum.KeyCode.Space) or
@@ -192,8 +183,20 @@ UserInputService.InputBegan:Connect(function(input, gameProcessed)
             debounce = false
         end)
     end
-end)
+end
 
+local function onCharacterAdded(char)
+    Character = char
+    Humanoid = char:WaitForChild("Humanoid")
+end
+
+if LocalPlayer.Character then
+    onCharacterAdded(LocalPlayer.Character)
+end
+LocalPlayer.CharacterAdded:Connect(onCharacterAdded)
+UserInputService.InputBegan:Connect(onInputBegan)
+
+-- Replace `MainTab` with your actual UI tab reference
 local Toggle = MainTab:CreateToggle({
     Name = "Inf Jump Undetected",
     CurrentValue = false,
@@ -202,7 +205,6 @@ local Toggle = MainTab:CreateToggle({
         infJumpEnabled = value
     end,
 })
-
 
 ------infjumpend------------
 
