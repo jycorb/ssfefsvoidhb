@@ -141,6 +141,7 @@ local LocalPlayer = Players.LocalPlayer
 local infJumpEnabled = false
 local Character
 local Humanoid
+local debounce = false
 
 local function spawnBrickUnder()
     if not Character then return end
@@ -149,11 +150,13 @@ local function spawnBrickUnder()
 
     local brick = Instance.new("Part")
     brick.Name = "helloguy"
-    brick.Size = Vector3.new(2, 2, 2) -- stud-sized
-    brick.Transparency = 1 -- fully transparent
+    brick.Size = Vector3.new(3, 0.5, 3) -- Correct size
+    brick.Transparency = 1
+    brick.Color = Color3.fromRGB(255, 0, 0)
+    brick.Material = Enum.Material.Neon
     brick.Anchored = true
     brick.CanCollide = true
-    brick.CFrame = hrp.CFrame * CFrame.new(0, -1, 0) -- inside legs, 1 stud below center
+    brick.CFrame = hrp.CFrame * CFrame.new(0, -2.25, 0)
     brick.Parent = workspace
 
     delay(0.1, function()
@@ -174,11 +177,19 @@ end
 LocalPlayer.CharacterAdded:Connect(onCharacterAdded)
 
 UserInputService.InputBegan:Connect(function(input, gameProcessed)
-    if gameProcessed or not infJumpEnabled then return end
+    if gameProcessed or not infJumpEnabled or debounce then return end
+    if not Humanoid then return end
 
-    if (input.UserInputType == Enum.UserInputType.Keyboard and input.KeyCode == Enum.KeyCode.Space)
-    or input.UserInputType == Enum.UserInputType.Touch then
+    local isJumpInput =
+        (input.UserInputType == Enum.UserInputType.Keyboard and input.KeyCode == Enum.KeyCode.Space) or
+        (input.UserInputType == Enum.UserInputType.Touch)
+
+    if isJumpInput then
+        debounce = true
         spawnBrickUnder()
+        task.delay(0.05, function()
+            debounce = false
+        end)
     end
 end)
 
@@ -190,6 +201,8 @@ local Toggle = MainTab:CreateToggle({
         infJumpEnabled = value
     end,
 })
+
+
 ------infjumpend------------
 
 -- Walkspeed
@@ -731,6 +744,7 @@ local Button = idenfraudTab:CreateButton({
 --Tower of hell cuz yes----------
 local TOHtab = Window:CreateTab("Tower of Hell", 12917925043) -- Title, Image
 local Paragraph = TOHtab:CreateParagraph({Title = "Tower of hell", Content = "All da tower of hell hacks below"})
+local Label = TOHtab:CreateLabel("Inf jump (undetected) is in the Main tab.", 117259180607823, Color3.fromRGB(89, 0, 255), false) -- Title, Icon, Color, IgnoreTheme
 --tp to top
 local Button = TOHtab:CreateButton({
    Name = "TP to the top (DETECTED)",
@@ -739,61 +753,3 @@ local Button = TOHtab:CreateButton({
    end,
 })
 
---inf jump undetected start---
-local Players = game:GetService("Players")
-local UserInputService = game:GetService("UserInputService")
-local LocalPlayer = Players.LocalPlayer
-
-local infJumpEnabled = false
-local Character
-local Humanoid
-
-local function spawnBrickUnder()
-    if not Character then return end
-    local hrp = Character:FindFirstChild("HumanoidRootPart")
-    if not hrp then return end
-
-    local brick = Instance.new("Part")
-    brick.Name = "helloguy"
-    brick.Size = Vector3.new(2, 2, 2) -- stud-sized
-    brick.Transparency = 1 -- fully transparent
-    brick.Anchored = true
-    brick.CanCollide = true
-    brick.CFrame = hrp.CFrame * CFrame.new(0, -1, 0) -- inside legs, 1 stud below center
-    brick.Parent = workspace
-
-    delay(0.1, function()
-        if brick and brick.Parent then
-            brick:Destroy()
-        end
-    end)
-end
-
-local function onCharacterAdded(char)
-    Character = char
-    Humanoid = char:WaitForChild("Humanoid")
-end
-
-if LocalPlayer.Character then
-    onCharacterAdded(LocalPlayer.Character)
-end
-LocalPlayer.CharacterAdded:Connect(onCharacterAdded)
-
-UserInputService.InputBegan:Connect(function(input, gameProcessed)
-    if gameProcessed or not infJumpEnabled then return end
-
-    if (input.UserInputType == Enum.UserInputType.Keyboard and input.KeyCode == Enum.KeyCode.Space)
-    or input.UserInputType == Enum.UserInputType.Touch then
-        spawnBrickUnder()
-    end
-end)
-
-local Toggle = TOHtab:CreateToggle({
-    Name = "Inf Jump Undetected",
-    CurrentValue = false,
-    Flag = "infjumpvoidvalue",
-    Callback = function(value)
-        infJumpEnabled = value
-    end,
-})
---inf jump toh end
