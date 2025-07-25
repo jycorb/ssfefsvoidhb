@@ -1,5 +1,4 @@
---voidhub fly
-
+--voidfly338
 local savedSpeed = 50
 
 local function gui()
@@ -128,7 +127,7 @@ local function gui()
         -- Mobile joystick fallback only if no PC input
         local moveDir = humanoid.MoveDirection
         if moveDir.Magnitude > 0 and dir.Magnitude == 0 then
-            dir = camCF:VectorToWorldSpace(moveDir).Unit
+            dir = moveDir.Unit
         end
 
         local targetVelocity = Vector3.zero
