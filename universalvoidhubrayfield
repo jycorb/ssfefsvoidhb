@@ -165,9 +165,9 @@ local function spawnBrickUnder()
 	if not hrp then return end
 
 	local brick = Instance.new("Part")
-	brick.Name = "helloguy"
+	brick.Name = "voidhubtypeshitinfjump"
 	brick.Size = Vector3.new(3, 0.5, 3)
-	brick.Transparency = 0
+	brick.Transparency = 1
 	brick.Color = Color3.fromRGB(255, 0, 0)
 	brick.Material = Enum.Material.Neon
 	brick.Anchored = true
@@ -742,6 +742,31 @@ local Button = naturalTab:CreateButton({
    end,
 })
 
+--tp to island
+local Button = naturalTab:CreateButton({
+   Name = "Teleport to island",
+   Callback = function()
+    local Players = game:GetService("Players")
+local player = Players.LocalPlayer
+local character = player.Character or player.CharacterAdded:Wait()
+local hrp = character:WaitForChild("HumanoidRootPart")
+
+local island = workspace:FindFirstChild("Island")
+
+if island then
+	for _, obj in ipairs(island:GetDescendants()) do
+		if obj:IsA("BasePart") and obj.Name == "Grass" then
+			hrp.CFrame = obj.CFrame + Vector3.new(0, 5, 0) -- teleport slightly above the grass part
+			break -- remove this if you want to teleport to all Grass parts in sequence
+		end
+	end
+else
+	warn("Island model not found in Workspace")
+end
+
+   end,
+})
+
 -------------------------------------
 --identity fraud---------------------
 local idenfraudTab = Window:CreateTab("Identity Fraud", 116377596101365) -- Title, Image
@@ -765,4 +790,36 @@ local Button = TOHtab:CreateButton({
     loadstring(game:HttpGet("https://raw.githubusercontent.com/jycorb/ssfefsvoidhb/refs/heads/main/Voidhub_Universal/TOHendteleport"))()
    end,
 })
+---Epic Rap Battles Tab
+local EpicRapTab = Window:CreateTab("Epic Rap Battles", 6869119847) -- Title, Image
+local Paragraph = EpicRapTab:CreateParagraph({Title = "Epic Rap Battles", Content = "VoidHub Epic Rap Battles hacks below"})
+--toggle invis walls
+local Toggle = EpicRapTab:CreateToggle({
+	Name = "Disable invis walls",
+	CurrentValue = false,
+	Flag = "InisRapBattleWallsValue",
+	Callback = function(Value)
+		local gameFolder = workspace:FindFirstChild("Game")
+		if not gameFolder then return end
+
+		-- Handle NoCollisions folder
+		local noCollisions = gameFolder:FindFirstChild("NoCollisions")
+		if noCollisions then
+			for _, obj in ipairs(noCollisions:GetDescendants()) do
+				if obj:IsA("BasePart") then
+					obj.CanCollide = not Value
+				end
+			end
+		end
+
+		-- Handle all parts named "Barrier"
+		for _, obj in ipairs(gameFolder:GetDescendants()) do
+			if obj:IsA("BasePart") and obj.Name == "Barrier" then
+				obj.CanCollide = not Value
+			end
+		end
+	end,
+})
+
+
 
