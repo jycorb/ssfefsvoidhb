@@ -141,14 +141,14 @@ local function gui()
 
         if UserInputService.TouchEnabled and not UserInputService.KeyboardEnabled and success and controlModule then
             -- Mobile joystick input with ControlModule:GetMoveVector()
-            local moveVector = controlModule:GetMoveVector() -- returns Vector3
+            local moveVector = controlModule:GetMoveVector()
             dir = Vector3.new(moveVector.X, 0, moveVector.Z)
             dir = camCF:VectorToWorldSpace(dir)
-            -- For vertical movement (optional): 
+
             if inputFlags.up then dir += camUp end
             if inputFlags.down then dir -= camUp end
         else
-            -- PC Input based on keys pressed
+            -- PC keyboard input (original)
             if inputFlags.forward then dir += camLook end
             if inputFlags.back then dir -= camLook end
             if inputFlags.left then dir -= camRight end
