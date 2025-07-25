@@ -1,0 +1,799 @@
+local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
+
+local Window = Rayfield:CreateWindow({
+    Name = "Void Hub Universal (FE)",
+    LoadingTitle = "Void Hub Universal",
+    LoadingSubtitle = "by brick.zip on discord",
+    ConfigurationSaving = {
+       Enabled = true,
+       FolderName = "VoidFolder", -- Create a custom folder for your hub/game
+       FileName = "VoidStats"
+    },
+    Discord = {
+       Enabled = true,
+       Invite = "5b6qRKFEFf", -- The Discord invite code, do not include discord.gg/. E.g. discord.gg/ABCD would be ABCD
+       RememberJoins = true -- Set this to false to make them join the discord every time they load it up
+    },
+    KeySystem = false, -- Set this to true to use our key system
+    KeySettings = {
+       Title = "Void Hub's",
+       Subtitle = "Key System",
+       Note = "Go in Void Hub discord for the key: https://discord.gg/5b6qRKFEFf",
+       FileName = "VoidHB1Key", -- It is recommended to use something unique as other scripts using Rayfield may overwrite your key file
+       SaveKey = false, -- The user's key will be saved, but if you change the key, they will be unable to use your script
+       GrabKeyFromSite = false, -- If this is true, set Key below to the RAW site you would like Rayfield to get the key from
+       Key = {"r8k3nc3ksa-3583-jjdn3-58832", "jnco123"} -- List of keys that will be accepted by the system, can be RAW file links (pastebin, github etc) or simple strings ("hello","key22")
+    }
+ })
+-- Universal tab --------------------
+ local MainTab = Window:CreateTab("Main", 117259180607823) -- Title, Image
+
+ local Paragraph = MainTab:CreateParagraph({Title = "Welcome to VoidHub", Content = "All the scripts were made or forked and configured by me. https://discord.gg/5b6qRKFEFf"})
+--inf yield
+ local Button = MainTab:CreateButton({
+   Name = "Inf Yield (Admin)",
+   Callback = function()
+      local StarterGui = game:GetService("StarterGui")
+
+      StarterGui:SetCore("SendNotification", {
+         Title = "Inf Yield Is loading",
+         Text = "Please be patient, depending on your executor.",
+         Duration = 20 -- seconds the notification stays
+      })
+    loadstring(game:HttpGet("https://raw.githubusercontent.com/EdgeIY/infiniteyield/master/source"))()
+   end,
+})
+--noclip
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+
+local LocalPlayer = Players.LocalPlayer
+local NoclipConnection
+
+local limbNames = {
+    -- R6 limbs
+    ["Left Arm"] = true,
+    ["Right Arm"] = true,
+    ["Left Leg"] = true,
+    ["Right Leg"] = true,
+
+    -- R15 limbs
+    ["LeftUpperArm"] = true,
+    ["RightUpperArm"] = true,
+    ["LeftLowerArm"] = true,
+    ["RightLowerArm"] = true,
+    ["LeftHand"] = true,
+    ["RightHand"] = true,
+    ["LeftUpperLeg"] = true,
+    ["RightUpperLeg"] = true,
+    ["LeftLowerLeg"] = true,
+    ["RightLowerLeg"] = true,
+    ["LeftFoot"] = true,
+    ["RightFoot"] = true,
+}
+
+local function SetLimbCollisions(character, canCollide)
+    for _, part in pairs(character:GetDescendants()) do
+        if part:IsA("BasePart") and limbNames[part.Name] then
+            part.CanCollide = canCollide
+        end
+    end
+end
+
+local Toggle = MainTab:CreateToggle({
+    Name = "Noclip",
+    CurrentValue = false,
+    Flag = "voidnoClip",
+    Callback = function(noclipToggle)
+        if noclipToggle then
+            NoclipConnection = RunService.Stepped:Connect(function()
+                local character = LocalPlayer.Character
+                if character then
+                    for _, part in pairs(character:GetDescendants()) do
+                        if part:IsA("BasePart") then
+                            part.CanCollide = false
+                        end
+                    end
+                end
+            end)
+        else
+            if NoclipConnection then
+                NoclipConnection:Disconnect()
+                NoclipConnection = nil
+            end
+
+            local character = LocalPlayer.Character
+            if character then
+                -- Enable collisions on all parts EXCEPT arms and legs, which stay non-collidable
+                for _, part in pairs(character:GetDescendants()) do
+                    if part:IsA("BasePart") then
+                        if limbNames[part.Name] then
+                            part.CanCollide = false
+                        else
+                            part.CanCollide = true
+                        end
+                    end
+                end
+            end
+        end
+    end,
+})
+
+-- fly
+ local Button = MainTab:CreateButton({
+   Name = "Undetected Fly",
+   Callback = function()
+      local StarterGui = game:GetService("StarterGui")
+
+      StarterGui:SetCore("SendNotification", {
+         Title = "Fly Gui Loaded",
+         Text = "Invincible fly on.",
+         Duration = 5 -- seconds the notification stays
+      })
+    loadstring(game:HttpGet("https://raw.githubusercontent.com/jycorb/ssfefsvoidhb/refs/heads/main/Voidhub_Universal/fly"))()
+   end,
+})
+--infjump start--------------
+local Players = game:GetService("Players")
+local UserInputService = game:GetService("UserInputService")
+local LocalPlayer = Players.LocalPlayer
+
+local infJumpEnabled = false
+local Character
+local Humanoid
+
+local function spawnBrickUnder()
+    if not Character then return end
+    local hrp = Character:FindFirstChild("HumanoidRootPart")
+    if not hrp then return end
+
+    local brick = Instance.new("Part")
+    brick.Name = "helloguy"
+    brick.Size = Vector3.new(2, 2, 2) -- stud-sized
+    brick.Transparency = 1 -- fully transparent
+    brick.Anchored = true
+    brick.CanCollide = true
+    brick.CFrame = hrp.CFrame * CFrame.new(0, -1, 0) -- inside legs, 1 stud below center
+    brick.Parent = workspace
+
+    delay(0.1, function()
+        if brick and brick.Parent then
+            brick:Destroy()
+        end
+    end)
+end
+
+local function onCharacterAdded(char)
+    Character = char
+    Humanoid = char:WaitForChild("Humanoid")
+end
+
+if LocalPlayer.Character then
+    onCharacterAdded(LocalPlayer.Character)
+end
+LocalPlayer.CharacterAdded:Connect(onCharacterAdded)
+
+UserInputService.InputBegan:Connect(function(input, gameProcessed)
+    if gameProcessed or not infJumpEnabled then return end
+
+    if (input.UserInputType == Enum.UserInputType.Keyboard and input.KeyCode == Enum.KeyCode.Space)
+    or input.UserInputType == Enum.UserInputType.Touch then
+        spawnBrickUnder()
+    end
+end)
+
+local Toggle = MainTab:CreateToggle({
+    Name = "Inf Jump Undetected",
+    CurrentValue = false,
+    Flag = "infjumpvoidvalue",
+    Callback = function(value)
+        infJumpEnabled = value
+    end,
+})
+------infjumpend------------
+
+-- Walkspeed
+local Slider = MainTab:CreateSlider({
+   Name = "Walk Speed",
+   Range = {16, 150},
+   Increment = 1,
+   Suffix = "Walk Speed",
+   CurrentValue = 16,
+   Flag = "WalkSpeedSlider", -- A flag is the identifier for the configuration file, make sure every element has a different flag if you're using configuration saving to ensure no overlaps
+   Callback = function(ws)
+   game.Players.LocalPlayer.Character.Humanoid.WalkSpeed = ws
+   -- The variable (Value) is a number which correlates to the value the slider is currently at
+   end,
+})
+-- Jump Power
+local Slider = MainTab:CreateSlider({
+   Name = "Jump Power",
+   Range = {50, 750},
+   Increment = 1,
+   Suffix = "Jump Power",
+   CurrentValue = 50,
+   Flag = "JumpPowerSlider", -- A flag is the identifier for the configuration file, make sure every element has a different flag if you're using configuration saving to ensure no overlaps
+   Callback = function(jp)
+   game.Players.LocalPlayer.Character.Humanoid.JumpPower = jp
+   -- The variable (Value) is a number which correlates to the value the slider is currently at
+   end,
+})
+-- Gravity
+local Slider = MainTab:CreateSlider({
+   Name = "Gravity",
+   Range = {0, 1000},
+   Increment = 1,
+   Suffix = "Gravity amount",
+   CurrentValue = 196.2,
+   Flag = "GravitySlider", -- A flag is the identifier for the configuration file, make sure every element has a different flag if you're using configuration saving to ensure no overlaps
+   Callback = function(grav)
+   workspace.Gravity = grav
+   -- The variable (Value) is a number which correlates to the value the slider is currently at
+   end,
+})
+
+-----------------------------------------------
+--Trolling Tab---------------------------------
+ local TrollingTab = Window:CreateTab("Trolling (FE)", 6180287256) -- Title, Image
+ local Paragraph = TrollingTab:CreateParagraph({Title = "Trolling Script by brick.zip", Content = "All the scripts were made or forked and configured by me. https://discord.gg/5b6qRKFEFf"})
+
+--fling user (start)---------------------------
+local Players = game:GetService("Players")
+local StarterGui = game:GetService("StarterGui")
+local LocalPlayer = game:GetService("Players").LocalPlayer
+
+local limbNames = {
+    -- R6 limbs
+    ["Left Arm"] = true,
+    ["Right Arm"] = true,
+    ["Left Leg"] = true,
+    ["Right Leg"] = true,
+
+    -- R15 limbs
+    ["LeftUpperArm"] = true,
+    ["RightUpperArm"] = true,
+    ["LeftLowerArm"] = true,
+    ["RightLowerArm"] = true,
+    ["LeftHand"] = true,
+    ["RightHand"] = true,
+    ["LeftUpperLeg"] = true,
+    ["RightUpperLeg"] = true,
+    ["LeftLowerLeg"] = true,
+    ["RightLowerLeg"] = true,
+    ["LeftFoot"] = true,
+    ["RightFoot"] = true,
+}
+
+local function FindTarget(name)
+    name = name:lower()
+    for _, player in ipairs(game:GetService("Players"):GetPlayers()) do
+        if player.Name:lower() == name then return player end
+    end
+    for _, player in ipairs(game:GetService("Players"):GetPlayers()) do
+        if player.DisplayName:lower() == name then return player end
+    end
+    for _, player in ipairs(game:GetService("Players"):GetPlayers()) do
+        if player.Name:lower():find(name) or player.DisplayName:lower():find(name) then return player end
+    end
+    return nil
+end
+
+local function AreCollisionsEnabled(character)
+    for _, part in ipairs(character:GetDescendants()) do
+        if part:IsA("BasePart") and part.CanCollide then
+            return true
+        end
+    end
+    return false
+end
+
+local function SetLimbCollisions(character, canCollide)
+    for _, part in ipairs(character:GetDescendants()) do
+        if part:IsA("BasePart") and limbNames[part.Name] then
+            part.CanCollide = canCollide
+        end
+    end
+end
+
+local Input = TrollingTab:CreateInput({
+    Name = "Fling Player (retry if it doesnt work)",
+    CurrentValue = "",
+    PlaceholderText = "Put Target User Here",
+    RemoveTextAfterFocusLost = true,
+    Flag = "FlingPlayerCVoid",
+    Callback = function(flingplayervalue)
+        local character = LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait()
+
+        if not AreCollisionsEnabled(character) then
+            StarterGui:SetCore("SendNotification", {
+                Title = "Game isn't compatible",
+                Text = "Try a game with player collisions.",
+                Duration = 5
+            })
+            return
+        end
+
+        local target
+        if flingplayervalue:lower() == "random" then
+            local others = {}
+            for _, p in ipairs(Players:GetPlayers()) do
+                if p ~= LocalPlayer and p.Character and p.Character:FindFirstChild("HumanoidRootPart") then
+                    table.insert(others, p)
+                end
+            end
+            if #others == 0 then return end
+            target = others[math.random(1, #others)]
+        else
+            target = FindTarget(flingplayervalue)
+        end
+
+        if not target or not target.Character or not target.Character:FindFirstChild("HumanoidRootPart") then return end
+
+        local hrp = character:WaitForChild("HumanoidRootPart")
+        local targetHRP = target.Character:WaitForChild("HumanoidRootPart")
+
+        local originalCFrame = hrp.CFrame
+
+        -- Disable all collisions for fling start + anchor root part
+        for _, part in ipairs(character:GetDescendants()) do
+            if part:IsA("BasePart") then
+                part.CanCollide = false
+            end
+        end
+        hrp.Anchored = true
+
+        hrp.CFrame = targetHRP.CFrame
+        hrp.AssemblyAngularVelocity = Vector3.new(0, 100000, 0)
+
+        task.wait(0.2)
+
+        -- Reset fling
+        hrp.AssemblyAngularVelocity = Vector3.zero
+        hrp.CFrame = originalCFrame
+        hrp.Anchored = false
+
+        -- Restore collisions for all parts except arms and legs which stay non-collidable
+        for _, part in ipairs(character:GetDescendants()) do
+            if part:IsA("BasePart") then
+                if limbNames[part.Name] then
+                    part.CanCollide = false
+                else
+                    part.CanCollide = true
+                end
+            end
+        end
+    end,
+})
+
+------------------------ end of fling (ik its long sorry)
+
+--Bang input (start)-------------
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+local StarterGui = game:GetService("StarterGui")
+
+local bangAnim, bang, bangDied, bangLoop
+
+local function r15(player)
+    local char = player.Character
+    if not char then return false end
+    local humanoid = char:FindFirstChildOfClass("Humanoid")
+    return humanoid and humanoid.RigType == Enum.HumanoidRigType.R15
+end
+
+local function getTorso(character)
+    return character:FindFirstChild("HumanoidRootPart") or character:FindFirstChild("Torso")
+end
+
+local function getRoot(character)
+    return getTorso(character)
+end
+
+local function execCmdUnbang()
+    if bang then
+        bang:Stop()
+        bang = nil
+    end
+    if bangAnim then
+        bangAnim:Destroy()
+        bangAnim = nil
+    end
+    if bangDied then
+        bangDied:Disconnect()
+        bangDied = nil
+    end
+    if bangLoop then
+        bangLoop:Disconnect()
+        bangLoop = nil
+    end
+end
+
+local function notify(message)
+    StarterGui:SetCore("SendNotification", {
+        Title = "VoidHub";
+        Text = message;
+        Duration = 4;
+    })
+end
+
+local function findPlayerByPartialName(input)
+    local lowerInput = input:lower()
+    for _, player in pairs(Players:GetPlayers()) do
+        if player.Name:lower():find(lowerInput) or (player.DisplayName and player.DisplayName:lower():find(lowerInput)) then
+            return player
+        end
+    end
+    return nil
+end
+
+local function getRandomPlayer(excludePlayer)
+    local candidates = {}
+    for _, player in pairs(Players:GetPlayers()) do
+        if player ~= excludePlayer then
+            table.insert(candidates, player)
+        end
+    end
+    if #candidates == 0 then
+        return nil
+    end
+    return candidates[math.random(1, #candidates)]
+end
+
+local Input = TrollingTab:CreateInput({
+    Name = "Bang/rape User",
+    CurrentValue = "",
+    PlaceholderText = "Put victim here",
+    RemoveTextAfterFocusLost = true,
+    Flag = "BangUserinputuser",
+    Callback = function(inputText)
+        local speaker = Players.LocalPlayer
+        if not speaker.Character or not speaker.Character:FindFirstChildOfClass("Humanoid") then
+            return
+        end
+
+        local trimmedInput = inputText:match("^%s*(.-)%s*$")
+        if trimmedInput == "" then
+            execCmdUnbang()
+            return
+        end
+
+        local targetPlayer
+
+        if trimmedInput:lower() == "random" then
+            targetPlayer = getRandomPlayer(speaker)
+            if not targetPlayer then
+                notify("No other players found")
+                return
+            end
+        else
+            targetPlayer = findPlayerByPartialName(trimmedInput)
+            if not targetPlayer then
+                notify("That's not a valid user")
+                return
+            end
+        end
+
+        execCmdUnbang()
+        wait()
+
+        local humanoid = speaker.Character:FindFirstChildOfClass("Humanoid")
+        bangAnim = Instance.new("Animation")
+        bangAnim.AnimationId = not r15(speaker) and "rbxassetid://148840371" or "rbxassetid://5918726674"
+        bang = humanoid:LoadAnimation(bangAnim)
+        bang:Play(0.1, 1, 1)
+        bang:AdjustSpeed(6)  -- doubled animation speed
+
+        bangDied = humanoid.Died:Connect(function()
+            execCmdUnbang()
+        end)
+
+        if targetPlayer.Character and targetPlayer.Character:FindFirstChild("HumanoidRootPart") then
+            local rootPart = getRoot(speaker.Character)
+            local targetRoot = getRoot(targetPlayer.Character)
+            local amplitude = 1.0    -- doubled amplitude (total ~2 studs)
+            local baseOffset = 1.1   -- adjusted center offset (so roughly moves between 0.1 and 2.1 studs)
+
+            bangLoop = RunService.Stepped:Connect(function(time)
+                pcall(function()
+                    if not rootPart or not targetRoot then return end
+
+                    local oscillation = (math.sin(time * 20) + 1) / 2  -- doubled frequency for faster back and forth
+                    local zOffset = baseOffset + amplitude * (oscillation * 2 - 1)
+
+                    local offset = CFrame.new(0, 0, zOffset)
+                    rootPart.CFrame = targetRoot.CFrame * offset
+                end)
+            end)
+        end
+    end,
+})
+---end of bang-----------------
+
+--Click to bang
+ local Button = TrollingTab:CreateButton({
+   Name = "Click To Bang Tool",
+   Callback = function()
+      local StarterGui = game:GetService("StarterGui")
+
+      StarterGui:SetCore("SendNotification", {
+         Title = "Click to bang",
+         Text = "should be in your inventory.",
+         Duration = 5 -- seconds the notification stays
+      })
+    loadstring(game:HttpGet("https://raw.githubusercontent.com/jycorb/ssfefsvoidhb/refs/heads/main/Voidhub_Universal/Click%20to%20bang"))()
+   end,
+})
+--Jerk off r15
+local Button = TrollingTab:CreateButton({
+   Name = "Jerk Off R15 Tool",
+   Callback = function()
+     local StarterGui = game:GetService("StarterGui")
+
+      StarterGui:SetCore("SendNotification", {
+         Title = "Jerk Off R15",
+         Text = "Check your inventory",
+         Duration = 5 -- seconds the notification stays
+      })
+    loadstring(game:HttpGet("https://pastefy.app/YZoglOyJ/raw"))()
+   end,
+})
+--jerk off r6
+local Button = TrollingTab:CreateButton({
+   Name = "Jerk Off R6 Tool",
+   Callback = function()
+     local StarterGui = game:GetService("StarterGui")
+
+      StarterGui:SetCore("SendNotification", {
+         Title = "Jerk Off R6",
+         Text = "Check your inventory",
+         Duration = 5 -- seconds the notification stays
+      })
+    loadstring(game:HttpGet("https://pastefy.app/wa3v2Vgm/raw"))()
+   end,
+})
+----------miscellaneous--------
+local miscTab = Window:CreateTab("Misc", 125418409411264) -- Title, Image
+local Paragraph = miscTab:CreateParagraph({Title = "Miscellaneous", Content = "All misc scripts"})
+--forcethirdp
+ local Button = miscTab:CreateButton({
+   Name = "Force thirdp and shiftlock",
+   Callback = function()
+    loadstring(game:HttpGet("https://raw.githubusercontent.com/jycorb/ssfefsvoidhb/refs/heads/main/Voidhub_Universal/forcethirdp"))()
+   end,
+})
+--Dex explorer
+ local Button = miscTab:CreateButton({
+   Name = "Dex Explorer",
+   Callback = function()
+      local StarterGui = game:GetService("StarterGui")
+
+      StarterGui:SetCore("SendNotification", {
+         Title = "Dex Explorer is loading",
+         Text = "Dex has loaded.",
+         Duration = 5 -- seconds the notification stays
+      })
+    loadstring(game:HttpGet("https://raw.githubusercontent.com/infyiff/backup/main/dex.lua"))()
+   end,
+})
+--f3x aka btools
+ local Button = miscTab:CreateButton({
+   Name = "F3X btools",
+   Callback = function()
+      local StarterGui = game:GetService("StarterGui")
+
+      StarterGui:SetCore("SendNotification", {
+         Title = "F3x btools should be in your inventory",
+         Text = "F3x has loaded - Voidhub",
+         Duration = 5 -- seconds the notification stays
+      })
+    loadstring(game:HttpGet("https://raw.githubusercontent.com/infyiff/backup/refs/heads/main/f3x.lua"))()
+   end,
+})
+--fullbrightness
+local Lighting = game:GetService("Lighting")
+
+-- Store original lighting settings
+local originalSettings = {
+    Brightness = Lighting.Brightness,
+    ClockTime = Lighting.ClockTime,
+    FogEnd = Lighting.FogEnd,
+    GlobalShadows = Lighting.GlobalShadows,
+    OutdoorAmbient = Lighting.OutdoorAmbient,
+}
+
+local Toggle = miscTab:CreateToggle({
+    Name = "Full Brightness",
+    CurrentValue = false,
+    Flag = "fbtogglevalue",
+    Callback = function(fbvalue)
+        if fbvalue then
+            -- Apply full brightness settings
+            Lighting.Brightness = 2
+            Lighting.ClockTime = 14
+            Lighting.FogEnd = 100000
+            Lighting.GlobalShadows = false
+            Lighting.OutdoorAmbient = Color3.fromRGB(128, 128, 128)
+        else
+            -- Restore original settings
+            Lighting.Brightness = originalSettings.Brightness
+            Lighting.ClockTime = originalSettings.ClockTime
+            Lighting.FogEnd = originalSettings.FogEnd
+            Lighting.GlobalShadows = originalSettings.GlobalShadows
+            Lighting.OutdoorAmbient = originalSettings.OutdoorAmbient
+        end
+    end,
+})
+
+--xray slider
+local Workspace = game:GetService("Workspace")
+
+local function hasHumanoidAncestor(part)
+	local current = part
+	while current.Parent do
+		if current:IsA("Model") and current:FindFirstChildOfClass("Humanoid") then
+			return true
+		end
+		current = current.Parent
+	end
+	return false
+end
+
+local function setXRayTransparency(value)
+	for _, obj in pairs(Workspace:GetDescendants()) do
+		if obj:IsA("BasePart") and obj.Transparency ~= 1 and not hasHumanoidAncestor(obj) then
+			pcall(function()
+				obj.Transparency = value
+			end)
+		end
+	end
+end
+
+local Slider = miscTab:CreateSlider({
+	Name = "Adjustable X-Ray",
+	Range = {0, 1},
+	Increment = 0.1,
+	Suffix = "",
+	CurrentValue = 0,
+	Flag = "xray_slider_value",
+	Callback = function(xrayvalue)
+		setXRayTransparency(xrayvalue)
+	end,
+})
+
+
+------GAMES-------
+------------------------------------
+--Natural Disaster Survival----------
+local naturalTab = Window:CreateTab("Natural Disaster", 88208086340781) -- Title, Image
+local Paragraph = naturalTab:CreateParagraph({Title = "FE Natural Disaster Survial Scripts", Content = "Tip: The fly in the main tab will be useful for these scripts."})
+
+--Super Ring Unanchor parts
+ local Button = naturalTab:CreateButton({
+   Name = "Super Ring Parts (BEST SCRIPT)",
+   Callback = function()
+      local StarterGui = game:GetService("StarterGui")
+
+      StarterGui:SetCore("SendNotification", {
+         Title = "Super Ring Voidhub",
+         Text = "Unanchored parts are required fyi",
+         Duration = 5 -- seconds the notification stays
+      })
+    loadstring(game:HttpGet("https://raw.githubusercontent.com/jycorb/ssfefsvoidhb/refs/heads/main/Voidhub_Universal/super%20ring%20unanchor"))()
+   end,
+})
+--Black hole unanchored parts
+local Button = naturalTab:CreateButton({
+   Name = "Black hole orbit GUI",
+   Callback = function()
+     local StarterGui = game:GetService("StarterGui")
+
+      StarterGui:SetCore("SendNotification", {
+         Title = "Blackhole gui loaded",
+         Text = "Unanchored parts is required.",
+         Duration = 5 -- seconds the notification stays
+      })
+    loadstring(game:HttpGet("https://raw.githubusercontent.com/jycorb/ssfefsvoidhb/refs/heads/main/Voidhub_Universal/blackholeFEunanchoredparts"))()
+   end,
+})
+--tp safe place
+local Button = naturalTab:CreateButton({
+   Name = "Teleport to safe place (Tower)",
+   Callback = function()
+       local Players = game:GetService("Players")
+       local LocalPlayer = Players.LocalPlayer
+
+       -- Safety check
+       if not LocalPlayer or not LocalPlayer.Character or not LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
+           warn("Character or HumanoidRootPart not found.")
+           return
+       end
+
+       -- Teleport destination
+       local targetPosition = Vector3.new(-269.483154296875, 180.14454650878906, 382.1812438964844)
+
+       -- Instant teleport
+       LocalPlayer.Character.HumanoidRootPart.CFrame = CFrame.new(targetPosition)
+   end,
+})
+
+-------------------------------------
+--identity fraud---------------------
+local idenfraudTab = Window:CreateTab("Identity Fraud", 116377596101365) -- Title, Image
+local Paragraph = idenfraudTab:CreateParagraph({Title = "FE Identity Fraud scripts", Content = "Tip: to force Third Person, go in the misc tab :)"})
+--Fraud Animation GUI
+local Button = idenfraudTab:CreateButton({
+   Name = "Fraud Animation GUI",
+   Callback = function()
+    loadstring(game:HttpGet("https://raw.githubusercontent.com/jycorb/ssfefsvoidhb/refs/heads/main/Voidhub_Universal/Fraud%20Animation"))()
+   end,
+})
+---------------------------------
+--Tower of hell cuz yes----------
+local TOHtab = Window:CreateTab("Tower of Hell", 12917925043) -- Title, Image
+local Paragraph = TOHtab:CreateParagraph({Title = "Tower of hell", Content = "All da tower of hell hacks below"})
+--tp to top
+local Button = TOHtab:CreateButton({
+   Name = "TP to the top (DETECTED)",
+   Callback = function()
+    loadstring(game:HttpGet("https://raw.githubusercontent.com/jycorb/ssfefsvoidhb/refs/heads/main/Voidhub_Universal/TOHendteleport"))()
+   end,
+})
+
+--inf jump undetected start---
+local Players = game:GetService("Players")
+local UserInputService = game:GetService("UserInputService")
+local LocalPlayer = Players.LocalPlayer
+
+local infJumpEnabled = false
+local Character
+local Humanoid
+
+local function spawnBrickUnder()
+    if not Character then return end
+    local hrp = Character:FindFirstChild("HumanoidRootPart")
+    if not hrp then return end
+
+    local brick = Instance.new("Part")
+    brick.Name = "helloguy"
+    brick.Size = Vector3.new(2, 2, 2) -- stud-sized
+    brick.Transparency = 1 -- fully transparent
+    brick.Anchored = true
+    brick.CanCollide = true
+    brick.CFrame = hrp.CFrame * CFrame.new(0, -1, 0) -- inside legs, 1 stud below center
+    brick.Parent = workspace
+
+    delay(0.1, function()
+        if brick and brick.Parent then
+            brick:Destroy()
+        end
+    end)
+end
+
+local function onCharacterAdded(char)
+    Character = char
+    Humanoid = char:WaitForChild("Humanoid")
+end
+
+if LocalPlayer.Character then
+    onCharacterAdded(LocalPlayer.Character)
+end
+LocalPlayer.CharacterAdded:Connect(onCharacterAdded)
+
+UserInputService.InputBegan:Connect(function(input, gameProcessed)
+    if gameProcessed or not infJumpEnabled then return end
+
+    if (input.UserInputType == Enum.UserInputType.Keyboard and input.KeyCode == Enum.KeyCode.Space)
+    or input.UserInputType == Enum.UserInputType.Touch then
+        spawnBrickUnder()
+    end
+end)
+
+local Toggle = TOHtab:CreateToggle({
+    Name = "Inf Jump Undetected",
+    CurrentValue = false,
+    Flag = "infjumpvoidvalue",
+    Callback = function(value)
+        infJumpEnabled = value
+    end,
+})
+--inf jump toh end
