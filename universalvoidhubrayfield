@@ -1,4 +1,17 @@
---niggas
+local StarterGui = game:GetService("StarterGui")
+
+StarterGui:SetCore("SendNotification", {
+    Title = "Hello nigga!",
+    Text = "Infjump test",
+    Duration = 5, -- how long it stays on screen
+    Button1 = "Okay",
+    Callback = function(button)
+        if button == "Okay" then
+            print("Player acknowledged the notification.")
+        end
+    end
+})
+
 local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
 
 local Window = Rayfield:CreateWindow({
