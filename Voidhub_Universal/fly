@@ -1,6 +1,4 @@
--- This is the full, unified fly script that works exactly the same on PC and Mobile
--- Mobile movement will now follow camera direction like PC (forward = toward where you're looking)
-
+--voidhub fly smoothly brick.zip made ts
 local savedSpeed = 50
 
 local function gui()
@@ -17,13 +15,14 @@ local function gui()
     local flySpeed = baseSpeed
     local flying = false
     local inputFlags = { forward = false, back = false, left = false, right = false, up = false, down = false }
-    local moveVector = Vector3.zero
 
     local bodyVelocity = Instance.new("BodyVelocity")
     bodyVelocity.MaxForce = Vector3.new(1e5, 1e5, 1e5)
+    bodyVelocity.Velocity = Vector3.zero
 
     local bodyGyro = Instance.new("BodyGyro")
     bodyGyro.MaxTorque = Vector3.new(1e5, 1e5, 1e5)
+    bodyGyro.CFrame = HRP.CFrame
 
     local screenGui = Instance.new("ScreenGui")
     screenGui.Name = "FlyScreenGui"
@@ -31,9 +30,7 @@ local function gui()
     screenGui.Parent = player:WaitForChild("PlayerGui")
 
     humanoid.Died:Connect(function()
-        if screenGui then
-            screenGui:Destroy()
-        end
+        if screenGui then screenGui:Destroy() end
     end)
 
     local toggleButton = Instance.new("TextButton")
@@ -65,14 +62,12 @@ local function gui()
         flySpeed = baseSpeed
         bodyVelocity.Parent = HRP
         bodyGyro.Parent = HRP
-        humanoid.PlatformStand = true
     end
 
     local function stopFlying()
         flying = false
         bodyVelocity.Parent = nil
         bodyGyro.Parent = nil
-        humanoid.PlatformStand = false
     end
 
     toggleButton.MouseButton1Click:Connect(function()
@@ -96,7 +91,6 @@ local function gui()
         end
     end)
 
-    -- PC Input
     UserInputService.InputBegan:Connect(function(input, gameProcessed)
         if gameProcessed then return end
         if input.KeyCode == Enum.KeyCode.W then inputFlags.forward = true end
@@ -116,20 +110,7 @@ local function gui()
         if input.KeyCode == Enum.KeyCode.Q then inputFlags.down = false end
     end)
 
-    -- Mobile movement
-    if UserInputService.TouchEnabled and not UserInputService.KeyboardEnabled then
-        local ContextActionService = game:GetService("ContextActionService")
-        ContextActionService:BindAction("MobileFlyMove", function(_, state, input)
-            if state == Enum.UserInputState.Change then
-                moveVector = input.Position -- Vector2
-            elseif state == Enum.UserInputState.End then
-                moveVector = Vector3.zero
-            end
-            return Enum.ContextActionResult.Pass
-        end, false, Enum.PlayerActions.CharacterForward)
-    end
-
-    RunService.RenderStepped:Connect(function(dt)
+    RunService.RenderStepped:Connect(function()
         if not flying then return end
 
         local camCF = Camera.CFrame
@@ -139,7 +120,7 @@ local function gui()
 
         local dir = Vector3.zero
 
-        -- PC movement
+        -- PC controls
         if inputFlags.forward then dir += camLook end
         if inputFlags.back then dir -= camLook end
         if inputFlags.left then dir -= camRight end
@@ -147,24 +128,19 @@ local function gui()
         if inputFlags.up then dir += camUp end
         if inputFlags.down then dir -= camUp end
 
-        -- Mobile movement
-        if moveVector.Magnitude > 0 then
-            local forwardComponent = camLook * moveVector.Y
-            local rightComponent = camRight * moveVector.X
-            dir = forwardComponent + rightComponent
+        -- Normalize direction
+        if dir.Magnitude > 0 then
+            dir = dir.Unit
         end
 
-        if dir.Magnitude > 0 then dir = dir.Unit end
-
-        local currentVelocity = bodyVelocity.Velocity
         local targetVelocity = dir * flySpeed
-        local lerpFactor = (dir.Magnitude > 0) and 0.08 or 0.04
-        bodyVelocity.Velocity = currentVelocity:Lerp(targetVelocity, lerpFactor)
 
-        -- Smooth camera-body orientation
-        local direction = camLook
-        local goalCFrame = CFrame.new(HRP.Position, HRP.Position + direction)
-        bodyGyro.CFrame = bodyGyro.CFrame:Lerp(goalCFrame, 0.15)
+        -- Smooth acceleration and deceleration
+        bodyVelocity.Velocity = bodyVelocity.Velocity:Lerp(targetVelocity, 0.08)
+
+        -- Smooth orientation with camera (yaw and pitch)
+        local targetCF = CFrame.new(HRP.Position, HRP.Position + camLook)
+        bodyGyro.CFrame = bodyGyro.CFrame:Lerp(targetCF, 0.1)
     end)
 end
 
