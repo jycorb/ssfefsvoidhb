@@ -1,0 +1,60 @@
+local TextChatService = game:GetService("TextChatService")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+
+local isLegacyChat = TextChatService.ChatVersion == Enum.ChatVersion.LegacyChatService
+
+-- Store last message
+_G._lastChatString = _G._lastChatString or nil
+
+function chatMessage(str)
+    str = tostring(str)
+    if not isLegacyChat then
+        TextChatService.TextChannels.RBXGeneral:SendAsync(str)
+    else
+        ReplicatedStorage.DefaultChatSystemChatEvents.SayMessageRequest:FireServer(str, "All")
+    end
+end
+
+function getstring()
+    local phrases = {
+        "100% attention seeker in front of me",
+        "small dih activities:",
+        "you haven't graduated from 3rd grade yet lower your tone",
+        "the only thing you pull is what your gravitational pull brings 😂",
+        "you cant talk shizz bout me",
+        "wash that dih cheese, oh wait, you dont have one 😂",
+        "stop using chat gpt for your lines 😭",
+        "I got more bands than your age",
+        "your lines are straight copy n paste admit to it",
+        "you wish you could be me but you got crusting dih cheese",
+        "corny nih listens to dubstep 😂",
+        "your avatar is a straight disappointment.",
+        "talk about friends haha",
+        "Your go to 'bars' is you just self projecting 😂😂😂",
+        "gdash older than lil dude",
+        "theres a job application behind you",
+        "name 5 people that love you in a span of 60 seconds 😂",
+        "theres a tomato stand over there you should consider dropping the pounds",
+        "syfm ur az watches yt shorts",
+        "go take a shower instead of taking in food vru",
+        "last porh vd i watched is older than bro 🤣",
+        "I can smell yo az through the screen",
+        "your soft as baby shiz",
+        "tell your parents to change your diaper",
+        "eat some lettuce boy",
+        "Ts was tuff maybe in 2021 💔",
+        "Your 5-11 in age max."
+    }
+
+    local newString
+    repeat
+        newString = phrases[math.random(1, #phrases)]
+    until newString ~= _G._lastChatString
+
+    _G._lastChatString = newString
+    return newString
+end
+
+-- Run once
+local cString = getstring()
+chatMessage(cString)
