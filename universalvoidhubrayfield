@@ -1,18 +1,6 @@
-local StarterGui = game:GetService("StarterGui")
-
-StarterGui:SetCore("SendNotification", {
-    Title = "Hello",
-    Text = "big booty nigger",
-    Duration = 5, -- how long it stays on screen
-    Button1 = "Okay",
-    Callback = function(button)
-        if button == "Okay" then
-            print("Player acknowledged the notification.")
-        end
-    end
-})
-
 local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
+--discordnotif
+loadstring(game:HttpGet('https://raw.githubusercontent.com/jycorb/ssfefsvoidhb/refs/heads/main/discordnotifjoin'))()
 
 local Window = Rayfield:CreateWindow({
     Name = "Void Hub Universal (FE)",
@@ -28,7 +16,7 @@ local Window = Rayfield:CreateWindow({
        Invite = "5b6qRKFEFf", -- The Discord invite code, do not include discord.gg/. E.g. discord.gg/ABCD would be ABCD
        RememberJoins = true -- Set this to false to make them join the discord every time they load it up
     },
-    KeySystem = false, -- Set this to true to use our key system
+    KeySystem = true, -- Set this to true to use our key system
     KeySettings = {
        Title = "Void Hub's",
        Subtitle = "Key System",
@@ -39,6 +27,7 @@ local Window = Rayfield:CreateWindow({
        Key = {"r8k3nc3ksa-3583-jjdn3-58832", "jnco123"} -- List of keys that will be accepted by the system, can be RAW file links (pastebin, github etc) or simple strings ("hello","key22")
     }
  })
+-------------------------------------
 -- Universal tab --------------------
  local MainTab = Window:CreateTab("Main", 117259180607823) -- Title, Image
 
@@ -324,7 +313,7 @@ end
 local Input = TrollingTab:CreateInput({
     Name = "Fling Player (retry if it doesnt work)",
     CurrentValue = "",
-    PlaceholderText = "Put Target User Here",
+    PlaceholderText = "Example: BigBlackGuy123",
     RemoveTextAfterFocusLost = true,
     Flag = "FlingPlayerCVoid",
     Callback = function(flingplayervalue)
@@ -468,7 +457,7 @@ end
 local Input = TrollingTab:CreateInput({
     Name = "Bang/rape User",
     CurrentValue = "",
-    PlaceholderText = "Put victim here",
+    PlaceholderText = "Example: playboycarti69",
     RemoveTextAfterFocusLost = true,
     Flag = "BangUserinputuser",
     Callback = function(inputText)
@@ -793,6 +782,26 @@ local Button = TOHtab:CreateButton({
 ---Epic Rap Battles Tab
 local EpicRapTab = Window:CreateTab("Epic Rap Battles", 6869119847) -- Title, Image
 local Paragraph = EpicRapTab:CreateParagraph({Title = "Epic Rap Battles", Content = "VoidHub Epic Rap Battles hacks below"})
+
+--Chat Random Roast
+local Button = EpicRapTab:CreateButton({
+   Name = "Chat Random Roast (Offensive)",
+   Callback = function()
+    loadstring(game:HttpGet('https://raw.githubusercontent.com/jycorb/ssfefsvoidhb/refs/heads/main/Voidhub_Universal/roastrandomizers'))()
+   end,
+})
+--Fix speed
+local Button = EpicRapTab:CreateButton({
+   Name = "Fix speed; walk around as rapper",
+   Callback = function()
+        local plr = game:GetService("Players").LocalPlayer
+        local char = plr.Character or plr.CharacterAdded:Wait()
+        local hum = char:FindFirstChildOfClass("Humanoid")
+        if hum then
+            hum.WalkSpeed = 16
+        end
+   end,
+})
 --toggle invis walls
 local Toggle = EpicRapTab:CreateToggle({
 	Name = "Disable invis walls",
@@ -820,6 +829,147 @@ local Toggle = EpicRapTab:CreateToggle({
 		end
 	end,
 })
+--Toggle all gamepasses
+local Players = game:GetService("Players")
+local localPlayer = Players.LocalPlayer
 
+local Toggle = EpicRapTab:CreateToggle({
+	Name = "Get All Gampasses (some arent visual. CANT DISABLE!)",
+	CurrentValue = false,
+	Flag = "EpicRapgamepassesvalue",
+	Callback = function(Value)
+            Rayfield:Notify({
+            Title = "Disclaimer",
+            Content = "You cant disable the gamepasses",
+            Duration = 6.5,
+            Image = 4483362458,
+            })
+		local gamepassesFolder = localPlayer:FindFirstChild("Gamepasses")
+		if gamepassesFolder then
+			for _, obj in ipairs(gamepassesFolder:GetChildren()) do
+				if obj:IsA("BoolValue") then
+					obj.Value = Value
+				end
+			end
+		end
 
+		local omegaStar = localPlayer:FindFirstChild("OmegaStar")
+		if omegaStar and omegaStar:IsA("BoolValue") then
+			omegaStar.Value = Value
+		end
+
+		local claimedReward = localPlayer:FindFirstChild("OmegaStarClaimedReward")
+		if claimedReward and claimedReward:IsA("BoolValue") then
+			claimedReward.Value = Value
+		end
+	end,
+})
+--Level input
+local Players = game:GetService("Players")
+local LocalPlayer = Players.LocalPlayer
+
+local Input = EpicRapTab:CreateInput({
+   Name = "Set Level",
+   CurrentValue = "",
+   PlaceholderText = "Example: 67",
+   RemoveTextAfterFocusLost = false,
+   Flag = "Levelrapbattles",
+   Callback = function(Text)
+      local number = tonumber(Text)
+      if not number then
+         warn("Invalid input: not a number.")
+         return
+      end
+
+      local levelValue = LocalPlayer:FindFirstChild("Level")
+
+      -- Auto-create if not found
+      if not levelValue then
+         levelValue = Instance.new("NumberValue")
+         levelValue.Name = "Level"
+         levelValue.Parent = LocalPlayer
+      end
+
+      if not levelValue:IsA("NumberValue") then
+         warn("Existing 'Level' is not a NumberValue.")
+         return
+      end
+
+      levelValue.Value = number
+   end,
+})
+--Exp changer
+local Players = game:GetService("Players")
+local LocalPlayer = Players.LocalPlayer
+
+local Input = EpicRapTab:CreateInput({
+   Name = "Set Exp",
+   CurrentValue = "",
+   PlaceholderText = "Example: 1500",
+   RemoveTextAfterFocusLost = false,
+   Flag = "ExpRapBattles",
+   Callback = function(Text)
+      local number = tonumber(Text)
+      if not number then
+         warn("Invalid input: not a number.")
+         return
+      end
+
+      local expValue = LocalPlayer:FindFirstChild("Exp")
+
+      -- Auto-create if missing
+      if not expValue then
+         expValue = Instance.new("NumberValue")
+         expValue.Name = "Exp"
+         expValue.Parent = LocalPlayer
+      end
+
+      if not expValue:IsA("NumberValue") then
+         warn("Existing 'Exp' is not a NumberValue.")
+         return
+      end
+
+      expValue.Value = number
+   end,
+})
+--Set wins
+local Players = game:GetService("Players")
+local LocalPlayer = Players.LocalPlayer
+
+local Input = EpicRapTab:CreateInput({
+   Name = "Set Wins",
+   CurrentValue = "",
+   PlaceholderText = "Example: 25",
+   RemoveTextAfterFocusLost = false,
+   Flag = "WinsRapBattles",
+   Callback = function(Text)
+      local number = tonumber(Text)
+      if not number then
+         warn("Invalid input: not a number.")
+         return
+      end
+
+      local leaderstats = LocalPlayer:FindFirstChild("leaderstats")
+      if not leaderstats then
+         warn("No 'leaderstats' folder found in player.")
+         return
+      end
+
+      local winsValue = leaderstats:FindFirstChild("Wins")
+
+      -- Auto-create if missing
+      if not winsValue then
+         winsValue = Instance.new("NumberValue")
+         winsValue.Name = "Wins"
+         winsValue.Parent = leaderstats
+      end
+
+      if not winsValue:IsA("NumberValue") then
+         warn("'Wins' exists but is not a NumberValue.")
+         return
+      end
+
+      winsValue.Value = number
+   end,
+})
 
