@@ -35,7 +35,7 @@ function getstring()
         "theres a job application behind you",
         "name 5 people that love you in a span of 60 seconds 😂",
         "theres a tomato stand over there you should consider dropping the pounds",
-        "syfm ur az watches yt shorts",
+        "syfm ur az watches shorts",
         "go take a shower instead of taking in food vru",
         "last porh vd i watched is older than bro 🤣",
         "I can smell yo az through the screen",
@@ -43,7 +43,12 @@ function getstring()
         "tell your parents to change your diaper",
         "eat some lettuce boy",
         "Ts was tuff maybe in 2021 💔",
-        "Your 5-11 in age max."
+        "Your 5-11 in age max.",
+        "this niz think he deadaz tuff 😭",
+        "Have you ever heard of getting puh?",
+        "okay mr little dih 😂",
+        "you need attention so bad",
+        "you're just a little kid w/ no life"
     }
 
     local newString
