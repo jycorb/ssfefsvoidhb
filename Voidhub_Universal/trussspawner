@@ -1,0 +1,335 @@
+local Players = game:GetService("Players")
+local TweenService = game:GetService("TweenService")
+local UserInputService = game:GetService("UserInputService")
+local RunService = game:GetService("RunService")
+
+local LocalPlayer = Players.LocalPlayer
+
+-- Character & HRP refs, updated on respawn
+local Character = LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait()
+local HRP = Character:WaitForChild("HumanoidRootPart")
+
+LocalPlayer.CharacterAdded:Connect(function(char)
+	Character = char
+	HRP = char:WaitForChild("HumanoidRootPart")
+end)
+
+-- Clean old GUI
+if LocalPlayer.PlayerGui:FindFirstChild("VoidHubClimber") then
+	LocalPlayer.PlayerGui.VoidHubClimber:Destroy()
+end
+
+-- UI Setup
+local gui = Instance.new("ScreenGui", LocalPlayer:WaitForChild("PlayerGui"))
+gui.Name = "VoidHubClimber"
+gui.ResetOnSpawn = false
+gui.ZIndexBehavior = Enum.ZIndexBehavior.Global -- Always on top
+
+local main = Instance.new("Frame")
+main.Size = UDim2.new(0, 220, 0, 280) -- increased height for new buttons
+main.AnchorPoint = Vector2.new(0.5, 0.5)
+main.Position = UDim2.new(0.5, 0, 0.5, 0) -- center screen
+main.BackgroundColor3 = Color3.fromRGB(54, 57, 63)
+main.BorderSizePixel = 0
+main.Parent = gui
+Instance.new("UICorner", main).CornerRadius = UDim.new(0, 10)
+
+-- Title
+local title = Instance.new("TextLabel", main)
+title.Size = UDim2.new(1, -30, 0, 30)
+title.Position = UDim2.new(0, 10, 0, 0)
+title.BackgroundTransparency = 1
+title.Text = "VoidHub Climber"
+title.TextColor3 = Color3.fromRGB(255, 255, 255)
+title.TextSize = 16
+title.Font = Enum.Font.GothamBold
+title.TextXAlignment = Enum.TextXAlignment.Left
+
+-- Description
+local desc = Instance.new("TextLabel", main)
+desc.Size = UDim2.new(1, -20, 0, 20)
+desc.Position = UDim2.new(0, 10, 0, 30)
+desc.BackgroundTransparency = 1
+desc.Text = "Fully undetected climber"
+desc.TextColor3 = Color3.fromRGB(170, 170, 170)
+desc.TextSize = 13
+desc.Font = Enum.Font.Gotham
+desc.TextXAlignment = Enum.TextXAlignment.Left
+
+-- Minimize Button
+local minBtn = Instance.new("TextButton", main)
+minBtn.Size = UDim2.new(0, 30, 0, 30)
+minBtn.Position = UDim2.new(1, -30, 0, 0)
+minBtn.BackgroundColor3 = Color3.fromRGB(88, 101, 242)
+minBtn.Text = "-"
+minBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+minBtn.Font = Enum.Font.GothamBold
+minBtn.TextSize = 18
+Instance.new("UICorner", minBtn).CornerRadius = UDim.new(0, 6)
+
+-- Spawn Truss Button
+local spawnBtn = Instance.new("TextButton", main)
+spawnBtn.Size = UDim2.new(1, -20, 0, 35)
+spawnBtn.Position = UDim2.new(0, 10, 0, 60)
+spawnBtn.BackgroundColor3 = Color3.fromRGB(88, 101, 242)
+spawnBtn.Text = "Spawn Truss"
+spawnBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+spawnBtn.Font = Enum.Font.Gotham
+spawnBtn.TextSize = 16
+Instance.new("UICorner", spawnBtn).CornerRadius = UDim.new(0, 6)
+
+-- Delete Truss Button
+local delBtn = Instance.new("TextButton", main)
+delBtn.Size = UDim2.new(1, -20, 0, 35)
+delBtn.Position = UDim2.new(0, 10, 0, 105)
+delBtn.BackgroundColor3 = Color3.fromRGB(255, 77, 77)
+delBtn.Text = "Delete All Truss"
+delBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+delBtn.Font = Enum.Font.Gotham
+delBtn.TextSize = 16
+Instance.new("UICorner", delBtn).CornerRadius = UDim.new(0, 6)
+
+-- Controls Container
+local controlsFrame = Instance.new("Frame", main)
+controlsFrame.Size = UDim2.new(1, -20, 0, 100)
+controlsFrame.Position = UDim2.new(0, 10, 0, 150)
+controlsFrame.BackgroundTransparency = 1
+
+-- Truss mover label
+local moverLabel = Instance.new("TextLabel", controlsFrame)
+moverLabel.Size = UDim2.new(1, 0, 0, 15)
+moverLabel.Position = UDim2.new(0, 0, 0, 0)
+moverLabel.BackgroundTransparency = 1
+moverLabel.Text = "Truss mover"
+moverLabel.TextColor3 = Color3.fromRGB(170, 170, 170)
+moverLabel.TextSize = 14
+moverLabel.Font = Enum.Font.GothamBold
+moverLabel.TextXAlignment = Enum.TextXAlignment.Center
+
+local btnSize = UDim2.new(0, 40, 0, 35)
+
+-- Helper to create buttons
+local function createArrowButton(text, pos)
+	local btn = Instance.new("TextButton", controlsFrame)
+	btn.Size = btnSize
+	btn.Position = pos
+	btn.BackgroundColor3 = Color3.fromRGB(88, 101, 242)
+	btn.Text = text
+	btn.TextColor3 = Color3.fromRGB(255, 255, 255)
+	btn.Font = Enum.Font.GothamBold
+	btn.TextSize = 20
+	btn.AutoButtonColor = true
+	Instance.new("UICorner", btn).CornerRadius = UDim.new(0, 6)
+	return btn
+end
+
+-- Create buttons
+local forwardBtn = createArrowButton("▲", UDim2.new(0.5, -20, 0, 20))
+local backBtn = createArrowButton("▼", UDim2.new(0.5, -20, 0, 60))
+local leftBtn = createArrowButton("◄", UDim2.new(0, 0, 0, 60))
+local rightBtn = createArrowButton("►", UDim2.new(1, -40, 0, 60))
+local upBtn = createArrowButton("+", UDim2.new(0, 0, 0, 20))   -- above left
+local downBtn = createArrowButton("-", UDim2.new(1, -40, 0, 20)) -- above right
+
+-- Folder for spawned trusses
+local trussFolder = Instance.new("Folder", workspace)
+trussFolder.Name = "VoidHub_Trusses"
+
+local lastTruss = nil
+
+-- Animate Button Press
+local function animateButton(btn)
+	local shrink = TweenService:Create(btn, TweenInfo.new(0.06, Enum.EasingStyle.Quad), {Size = btn.Size - UDim2.new(0, 4, 0, 2)})
+	local grow = TweenService:Create(btn, TweenInfo.new(0.1, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {Size = btn.Size})
+
+	shrink:Play()
+	shrink.Completed:Connect(function()
+		grow:Play()
+	end)
+end
+
+-- Spawn truss
+spawnBtn.MouseButton1Click:Connect(function()
+	animateButton(spawnBtn)
+	local truss = Instance.new("TrussPart")
+	truss.Size = Vector3.new(4, 400, 1) -- 2x taller
+	truss.Anchored = true
+	truss.CanCollide = true
+	truss.Name = "VoidHubTruss"
+	truss.Position = HRP.Position + HRP.CFrame.LookVector * 5 + Vector3.new(0, 200, 0)
+	truss.Parent = trussFolder
+	lastTruss = truss
+end)
+
+-- Delete trusses
+delBtn.MouseButton1Click:Connect(function()
+	animateButton(delBtn)
+	for _, tr in ipairs(trussFolder:GetChildren()) do
+		if tr:IsA("TrussPart") then
+			tr:Destroy()
+		end
+	end
+	lastTruss = nil
+end)
+
+-- Movement state
+local moveDirections = {
+	forward = false,
+	back = false,
+	left = false,
+	right = false,
+	up = false,
+	down = false,
+}
+
+local moveSpeed = 30 -- studs per second
+
+-- Move truss and player each frame while button held
+RunService.Heartbeat:Connect(function(dt)
+	if not lastTruss then return end
+
+	local moveVector = Vector3.new(0, 0, 0)
+
+	local hrpCFrame = HRP.CFrame
+	local lookVector = Vector3.new(hrpCFrame.LookVector.X, 0, hrpCFrame.LookVector.Z)
+	if lookVector.Magnitude == 0 then
+		lookVector = Vector3.new(0,0,-1)
+	else
+		lookVector = lookVector.Unit
+	end
+	local rightVector = Vector3.new(hrpCFrame.RightVector.X, 0, hrpCFrame.RightVector.Z)
+	if rightVector.Magnitude == 0 then
+		rightVector = Vector3.new(1,0,0)
+	else
+		rightVector = rightVector.Unit
+	end
+
+	-- Forward/back relative to lookVector
+	if moveDirections.forward then
+		moveVector = moveVector + lookVector
+	end
+	if moveDirections.back then
+		moveVector = moveVector - lookVector
+	end
+	-- Left/right relative to rightVector
+	if moveDirections.left then
+		moveVector = moveVector - rightVector
+	end
+	if moveDirections.right then
+		moveVector = moveVector + rightVector
+	end
+	-- Up/down
+	if moveDirections.up then
+		moveVector = moveVector + Vector3.new(0, 1, 0)
+	end
+	if moveDirections.down then
+		moveVector = moveVector - Vector3.new(0, 1, 0)
+	end
+
+	if moveVector.Magnitude > 0 then
+		moveVector = moveVector.Unit * moveSpeed * dt
+		-- Move truss
+		lastTruss.Position = lastTruss.Position + moveVector
+
+		-- Check if player is roughly on truss before moving player
+		local hrpPos = HRP.Position
+		local trussTop = lastTruss.Position + Vector3.new(0, lastTruss.Size.Y / 2, 0)
+		local trussBottom = lastTruss.Position - Vector3.new(0, lastTruss.Size.Y / 2, 0)
+
+		local verticalTolerance = 3
+		local horizontalTolerance = 5
+
+		local onTrussVertically = hrpPos.Y >= (trussBottom.Y - verticalTolerance) and hrpPos.Y <= (trussTop.Y + verticalTolerance)
+		local horizontalDist = (Vector3.new(hrpPos.X, 0, hrpPos.Z) - Vector3.new(lastTruss.Position.X, 0, lastTruss.Position.Z)).Magnitude
+		local onTrussHorizontally = horizontalDist <= (lastTruss.Size.X / 2 + horizontalTolerance)
+
+		if onTrussVertically and onTrussHorizontally then
+			-- Move player with truss
+			HRP.CFrame = HRP.CFrame + moveVector
+		end
+	end
+end)
+
+-- Helper to handle button press/release for continuous movement
+local function setupHoldButton(button, directionKey)
+	button.MouseButton1Down:Connect(function()
+		moveDirections[directionKey] = true
+		animateButton(button)
+	end)
+	button.MouseButton1Up:Connect(function()
+		moveDirections[directionKey] = false
+	end)
+	button.MouseLeave:Connect(function()
+		moveDirections[directionKey] = false
+	end)
+end
+
+setupHoldButton(forwardBtn, "forward")
+setupHoldButton(backBtn, "back")
+setupHoldButton(leftBtn, "left")
+setupHoldButton(rightBtn, "right")
+setupHoldButton(upBtn, "up")
+setupHoldButton(downBtn, "down")
+
+-- Minimize
+local minimized = false
+minBtn.MouseButton1Click:Connect(function()
+	animateButton(minBtn)
+	minimized = not minimized
+
+	local targetSize = minimized and UDim2.new(0, 220, 0, 30) or UDim2.new(0, 220, 0, 280)
+	local tween = TweenService:Create(main, TweenInfo.new(0.25, Enum.EasingStyle.Quad), {Size = targetSize})
+	tween:Play()
+
+	spawnBtn.Visible = not minimized
+	delBtn.Visible = not minimized
+	desc.Visible = not minimized
+	controlsFrame.Visible = not minimized
+
+	if minimized then
+		tween.Completed:Connect(function()
+			local pop = TweenService:Create(main, TweenInfo.new(0.08, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {
+				Size = UDim2.new(0, 220, 0, 34)
+			})
+			pop:Play()
+			pop.Completed:Connect(function()
+				TweenService:Create(main, TweenInfo.new(0.08), {
+					Size = UDim2.new(0, 220, 0, 30)
+				}):Play()
+			end)
+		end)
+	end
+end)
+
+-- Drag Support (Mobile + PC)
+local dragging, dragInput, dragStart, startPos
+
+main.InputBegan:Connect(function(input)
+	if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+		dragging = true
+		dragStart = input.Position
+		startPos = main.Position
+
+		input.Changed:Connect(function()
+			if input.UserInputState == Enum.UserInputState.End then
+				dragging = false
+			end
+		end)
+	end
+end)
+
+main.InputChanged:Connect(function(input)
+	if input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch then
+		dragInput = input
+	end
+end)
+
+UserInputService.InputChanged:Connect(function(input)
+	if input == dragInput and dragging then
+		local delta = input.Position - dragStart
+		main.Position = UDim2.new(
+			startPos.X.Scale, startPos.X.Offset + delta.X,
+			startPos.Y.Scale, startPos.Y.Offset + delta.Y
+		)
+	end
+end)
