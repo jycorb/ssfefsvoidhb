@@ -1,0 +1,290 @@
+--// Services
+local TweenService = game:GetService("TweenService")
+local UserInputService = game:GetService("UserInputService")
+local Players = game:GetService("Players")
+local LocalPlayer = Players.LocalPlayer
+
+--// GUI Setup
+local gui = Instance.new("ScreenGui", game.CoreGui)
+gui.Name = "VoidHub"
+gui.ResetOnSpawn = false
+
+local originalWidth = 400
+local minimizedWidth = originalWidth - 15
+
+local main = Instance.new("Frame", gui)
+main.Size = UDim2.new(0, originalWidth, 0, 320)
+main.Position = UDim2.new(0.5, -originalWidth/2, 0.5, -160)
+main.BackgroundColor3 = Color3.fromRGB(24, 24, 24)
+main.BorderSizePixel = 0
+main.AnchorPoint = Vector2.new(0.5, 0.5)
+main.ClipsDescendants = true
+Instance.new("UICorner", main).CornerRadius = UDim.new(0, 6)
+
+-- Draggable
+local dragging, dragStart, startPos
+main.InputBegan:Connect(function(input)
+	if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+		dragging = true
+		dragStart = input.Position
+		startPos = main.Position
+		input.Changed:Connect(function()
+			if input.UserInputState == Enum.UserInputState.End then dragging = false end
+		end)
+	end
+end)
+UserInputService.InputChanged:Connect(function(input)
+	if dragging and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
+		local delta = input.Position - dragStart
+		main.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
+	end
+end)
+
+-- Top Bar
+local topBar = Instance.new("Frame", main)
+topBar.Size = UDim2.new(1, 0, 0, 30)
+topBar.BackgroundColor3 = Color3.fromRGB(255, 0, 0)
+topBar.BorderSizePixel = 0
+Instance.new("UICorner", topBar).CornerRadius = UDim.new(0, 6)
+
+task.spawn(function()
+	while true do
+		local color = Color3.fromHSV((tick() % 5) / 5, 0.8, 1)
+		topBar.BackgroundColor3 = color
+		task.wait(0.05)
+	end
+end)
+
+local title = Instance.new("TextLabel", topBar)
+title.Text = "VoidHub Fire Remote"
+title.Size = UDim2.new(1, -60, 1, 0)
+title.Position = UDim2.new(0, 10, 0, 0)
+title.TextColor3 = Color3.new(0, 0, 0)
+title.BackgroundTransparency = 1
+title.Font = Enum.Font.GothamBold
+title.TextSize = 16
+title.TextXAlignment = Enum.TextXAlignment.Left
+
+local minBtn = Instance.new("TextButton", topBar)
+minBtn.Size = UDim2.new(0, 30, 1, 0)
+minBtn.Position = UDim2.new(1, -35, 0, 0)
+minBtn.Text = "-"
+minBtn.TextColor3 = Color3.new(1, 1, 1)
+minBtn.Font = Enum.Font.GothamBold
+minBtn.TextSize = 20
+minBtn.BackgroundTransparency = 1
+
+-- Content Frame
+local content = Instance.new("Frame", main)
+content.Name = "Content"
+content.Size = UDim2.new(1, 0, 1, -30)
+content.Position = UDim2.new(0, 0, 0, 30)
+content.BackgroundTransparency = 1
+
+-- Dropdown + Search container
+local dropHolder = Instance.new("Frame", content)
+dropHolder.Size = UDim2.new(0.9, 0, 0, 30)
+dropHolder.Position = UDim2.new(0.05, 0, 0, 10)
+dropHolder.BackgroundTransparency = 1
+
+local dropdownBtn = Instance.new("TextButton", dropHolder)
+dropdownBtn.Size = UDim2.new(0.55, 0, 1, 0)
+dropdownBtn.Position = UDim2.new(0, 0, 0, 0)
+dropdownBtn.BackgroundColor3 = Color3.fromRGB(34, 34, 34)
+dropdownBtn.BorderSizePixel = 0
+dropdownBtn.TextColor3 = Color3.new(1, 1, 1)
+dropdownBtn.Text = "Select Remote"
+dropdownBtn.Font = Enum.Font.Gotham
+dropdownBtn.TextSize = 14
+Instance.new("UICorner", dropdownBtn).CornerRadius = UDim.new(0, 4)
+
+local searchBox = Instance.new("TextBox", dropHolder)
+searchBox.Size = UDim2.new(0.35, 0, 1, 0)
+searchBox.Position = UDim2.new(0.57, 0, 0, 0)
+searchBox.PlaceholderText = "Search"
+searchBox.Text = ""
+searchBox.ClearTextOnFocus = true
+searchBox.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+searchBox.BorderSizePixel = 0
+searchBox.TextColor3 = Color3.fromRGB(255, 255, 255)
+searchBox.Font = Enum.Font.Gotham
+searchBox.TextSize = 14
+Instance.new("UICorner", searchBox).CornerRadius = UDim.new(0, 4)
+
+local searchBtn = Instance.new("TextButton", dropHolder)
+searchBtn.Size = UDim2.new(0.08, 0, 1, 0)
+searchBtn.Position = UDim2.new(0.93, 0, 0, 0)
+searchBtn.Text = "🔍"
+searchBtn.TextColor3 = Color3.new(1, 1, 1)
+searchBtn.Font = Enum.Font.Gotham
+searchBtn.TextSize = 16
+searchBtn.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+searchBtn.BorderSizePixel = 0
+Instance.new("UICorner", searchBtn).CornerRadius = UDim.new(0, 4)
+
+-- Dropdown List
+local dropdownList = Instance.new("ScrollingFrame", content)
+dropdownList.Position = UDim2.new(0.05, 0, 0, 45)
+dropdownList.Size = UDim2.new(0.9, 0, 0, 110)
+dropdownList.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+dropdownList.BorderSizePixel = 0
+dropdownList.Visible = false
+dropdownList.ScrollBarThickness = 3
+dropdownList.AutomaticCanvasSize = Enum.AutomaticSize.Y
+dropdownList.ClipsDescendants = true
+Instance.new("UICorner", dropdownList).CornerRadius = UDim.new(0, 4)
+
+local listLayout = Instance.new("UIListLayout", dropdownList)
+listLayout.SortOrder = Enum.SortOrder.LayoutOrder
+
+-- Argument Inputs
+local inputHolder = Instance.new("Frame", content)
+inputHolder.Size = UDim2.new(0.9, 0, 0, 90)
+inputHolder.Position = UDim2.new(0.05, 0, 0, 150)
+inputHolder.BackgroundTransparency = 1
+
+local stringBox = Instance.new("TextBox", inputHolder)
+stringBox.PlaceholderText = "String Arg"
+stringBox.Size = UDim2.new(1, 0, 0, 25)
+stringBox.Position = UDim2.new(0, 0, 0, 0)
+stringBox.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+stringBox.TextColor3 = Color3.new(1, 1, 1)
+stringBox.BorderSizePixel = 0
+stringBox.Font = Enum.Font.Gotham
+stringBox.TextSize = 14
+stringBox.ClearTextOnFocus = true
+
+local boolDropdown = Instance.new("TextButton", inputHolder)
+boolDropdown.Size = UDim2.new(1, 0, 0, 25)
+boolDropdown.Position = UDim2.new(0, 0, 0, 30)
+boolDropdown.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+boolDropdown.TextColor3 = Color3.new(1, 1, 1)
+boolDropdown.Text = "Boolean: false"
+boolDropdown.Font = Enum.Font.Gotham
+boolDropdown.TextSize = 14
+boolDropdown.BorderSizePixel = 0
+Instance.new("UICorner", boolDropdown).CornerRadius = UDim.new(0, 4)
+
+local currentBool = false
+boolDropdown.MouseButton1Click:Connect(function()
+	currentBool = not currentBool
+	boolDropdown.Text = "Boolean: " .. tostring(currentBool)
+end)
+
+local numberBox = Instance.new("TextBox", inputHolder)
+numberBox.PlaceholderText = "Number Arg"
+numberBox.Size = UDim2.new(1, 0, 0, 25)
+numberBox.Position = UDim2.new(0, 0, 0, 60)
+numberBox.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+numberBox.TextColor3 = Color3.new(1, 1, 1)
+numberBox.BorderSizePixel = 0
+numberBox.Font = Enum.Font.Gotham
+numberBox.TextSize = 14
+numberBox.ClearTextOnFocus = true
+
+-- Execute Button
+local executeBtn = Instance.new("TextButton", content)
+executeBtn.Size = UDim2.new(0.9, 0, 0, 35)
+executeBtn.Position = UDim2.new(0.05, 0, 1, -45)
+executeBtn.AnchorPoint = Vector2.new(0, 1)
+executeBtn.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+executeBtn.BorderSizePixel = 0
+executeBtn.TextColor3 = Color3.new(1, 1, 1)
+executeBtn.Font = Enum.Font.GothamSemibold
+executeBtn.TextSize = 16
+executeBtn.Text = "Execute"
+Instance.new("UICorner", executeBtn).CornerRadius = UDim.new(0, 6)
+
+-- Fire All Button (basic, no args)
+local fireAllBtn = Instance.new("TextButton", content)
+fireAllBtn.Size = UDim2.new(0.9, 0, 0, 35)
+fireAllBtn.Position = UDim2.new(0.05, 0, 1, -5)
+fireAllBtn.AnchorPoint = Vector2.new(0, 1)
+fireAllBtn.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+fireAllBtn.BorderSizePixel = 0
+fireAllBtn.TextColor3 = Color3.new(1, 1, 1)
+fireAllBtn.Font = Enum.Font.GothamSemibold
+fireAllBtn.TextSize = 16
+fireAllBtn.Text = "Fire All Remotes"
+Instance.new("UICorner", fireAllBtn).CornerRadius = UDim.new(0, 6)
+
+-- Remote Listing + Filtering
+local allRemotes = {}
+local selectedRemote = nil
+
+local function refreshList(filter)
+	dropdownList:ClearAllChildren()
+	listLayout = Instance.new("UIListLayout", dropdownList)
+	listLayout.SortOrder = Enum.SortOrder.LayoutOrder
+
+	for _, remote in pairs(allRemotes) do
+		if not filter or string.find(remote.Name:lower(), filter:lower()) then
+			local btn = Instance.new("TextButton", dropdownList)
+			btn.Size = UDim2.new(1, 0, 0, 25)
+			btn.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+			btn.Text = remote:GetFullName()
+			btn.TextColor3 = Color3.new(1, 1, 1)
+			btn.Font = Enum.Font.Gotham
+			btn.TextSize = 12
+			btn.TextXAlignment = Enum.TextXAlignment.Left
+			Instance.new("UICorner", btn).CornerRadius = UDim.new(0, 4)
+
+			btn.MouseButton1Click:Connect(function()
+				selectedRemote = remote
+				dropdownBtn.Text = "Selected: " .. remote.Name
+				dropdownList.Visible = false
+			end)
+		end
+	end
+end
+
+searchBox:GetPropertyChangedSignal("Text"):Connect(function()
+	refreshList(searchBox.Text)
+end)
+
+searchBtn.MouseButton1Click:Connect(function()
+	refreshList(searchBox.Text)
+end)
+
+for _, v in ipairs(game:GetDescendants()) do
+	if v:IsA("RemoteEvent") then
+		table.insert(allRemotes, v)
+	end
+end
+refreshList("")
+
+dropdownBtn.MouseButton1Click:Connect(function()
+	dropdownList.Visible = not dropdownList.Visible
+end)
+
+executeBtn.MouseButton1Click:Connect(function()
+	if selectedRemote then
+		pcall(function()
+			local str = stringBox.Text
+			local num = tonumber(numberBox.Text) or 0
+			local bool = currentBool
+			selectedRemote:FireServer(str, bool, num)
+		end)
+	end
+end)
+
+fireAllBtn.MouseButton1Click:Connect(function()
+	for _, remote in ipairs(game:GetDescendants()) do
+		if remote:IsA("RemoteEvent") then
+			pcall(function()
+				remote:FireServer()
+			end)
+		end
+	end
+end)
+
+-- Minimize logic
+local minimized = false
+minBtn.MouseButton1Click:Connect(function()
+	minimized = not minimized
+	local newWidth = minimized and minimizedWidth or originalWidth
+	local newSize = UDim2.new(0, newWidth, 0, minimized and 30 or 320)
+	local tween = TweenService:Create(main, TweenInfo.new(0.3, Enum.EasingStyle.Quad), {Size = newSize})
+	tween:Play()
+	content.Visible = not minimized
+end)
