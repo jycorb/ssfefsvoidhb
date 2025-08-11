@@ -1,12 +1,16 @@
---took so long to make btw
---made by brick.zip
-local savedSpeed = 50
+-- VoidHub Fly (Rayfield-style GUI with mobile input and improved flying)
+local savedSpeed = 60
+local savedSmoothness = 0.1 -- default easing value
 
-local function gui()
-    local Players = game:GetService("Players")
-    local RunService = game:GetService("RunService")
-    local UserInputService = game:GetService("UserInputService")
-    local player = Players.LocalPlayer
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+local UserInputService = game:GetService("UserInputService")
+local TweenService = game:GetService("TweenService")
+local StarterGui = game:GetService("StarterGui")
+
+local player = Players.LocalPlayer
+
+local function createGui()
     local character = player.Character or player.CharacterAdded:Wait()
     local humanoid = character:WaitForChild("Humanoid")
     local HRP = character:WaitForChild("HumanoidRootPart")
@@ -14,63 +18,222 @@ local function gui()
 
     local baseSpeed = savedSpeed
     local flySpeed = baseSpeed
+    local smoothness = savedSmoothness
     local flying = false
     local inputFlags = { forward = false, back = false, left = false, right = false, up = false, down = false }
 
     local bodyVelocity = Instance.new("BodyVelocity")
     bodyVelocity.MaxForce = Vector3.new(1e5, 1e5, 1e5)
+    bodyVelocity.Velocity = Vector3.new(0, 0, 0)
 
     local bodyGyro = Instance.new("BodyGyro")
     bodyGyro.MaxTorque = Vector3.new(1e5, 1e5, 1e5)
 
-    local screenGui = Instance.new("ScreenGui")
-    screenGui.Name = "FlyScreenGui"
+    -- GUI setup
+    local screenGui = player:WaitForChild("PlayerGui"):FindFirstChild("VoidHubFlyGui")
+    if screenGui then
+        screenGui:Destroy()
+    end
+    screenGui = Instance.new("ScreenGui")
+    screenGui.Name = "VoidHubFlyGui"
     screenGui.ResetOnSpawn = false
     screenGui.Parent = player:WaitForChild("PlayerGui")
 
-    humanoid.Died:Connect(function()
-        if screenGui then
-            screenGui:Destroy()
+    -- Main frame
+    local mainFrame = Instance.new("Frame")
+    mainFrame.Name = "MainFrame"
+    mainFrame.Size = UDim2.new(0, 300, 0, 200) -- increased height for new input
+    mainFrame.Position = UDim2.new(0.5, -150, 0.2, 0)
+    mainFrame.AnchorPoint = Vector2.new(0.5, 0)
+    mainFrame.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+    mainFrame.BorderSizePixel = 0
+    mainFrame.Parent = screenGui
+    Instance.new("UICorner", mainFrame).CornerRadius = UDim.new(0, 10)
+    local mainStroke = Instance.new("UIStroke", mainFrame)
+    mainStroke.Thickness = 1
+    mainStroke.Color = Color3.fromRGB(50, 50, 50)
+    mainStroke.Transparency = 0.5
+
+    -- Title bar with rainbow hue cycling (50% brightness)
+    local titleBar = Instance.new("Frame")
+    titleBar.Size = UDim2.new(1, 0, 0, 34)
+    titleBar.BackgroundColor3 = Color3.fromHSV(0, 1, 0.5)
+    titleBar.Parent = mainFrame
+    Instance.new("UICorner", titleBar).CornerRadius = UDim.new(0, 8)
+
+    task.spawn(function()
+        local hue = 0
+        while task.wait(0.03) do
+            hue = (hue + 0.002) % 1
+            titleBar.BackgroundColor3 = Color3.fromHSV(hue, 1, 0.5)
         end
     end)
 
-    local toggleButton = Instance.new("TextButton")
-    toggleButton.Name = "ToggleFlyButton"
-    toggleButton.Text = "Fly OFF"
-    toggleButton.Size = UDim2.new(0, 100, 0, 50)
-    toggleButton.Position = UDim2.new(1, -220, 0, 10)
-    toggleButton.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
-    toggleButton.TextColor3 = Color3.fromRGB(255, 255, 255)
-    toggleButton.Font = Enum.Font.GothamBold
-    toggleButton.TextScaled = true
-    toggleButton.BackgroundTransparency = 0.2
-    toggleButton.Parent = screenGui
+    local titleLabel = Instance.new("TextLabel")
+    titleLabel.Size = UDim2.new(1, -40, 1, 0)
+    titleLabel.Position = UDim2.new(0, 8, 0, 0)
+    titleLabel.BackgroundTransparency = 1
+    titleLabel.Text = "VoidHub Fly"
+    titleLabel.Font = Enum.Font.GothamBold
+    titleLabel.TextSize = 18
+    titleLabel.TextColor3 = Color3.fromRGB(230, 230, 230)
+    titleLabel.TextXAlignment = Enum.TextXAlignment.Left
+    titleLabel.Parent = titleBar
 
+    -- Minimize button
+    local minButton = Instance.new("TextButton")
+    minButton.Size = UDim2.new(0, 30, 0, 30)
+    minButton.Position = UDim2.new(1, -34, 0, 2)
+    minButton.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+    minButton.BorderSizePixel = 0
+    minButton.Text = "—"
+    minButton.Font = Enum.Font.GothamBold
+    minButton.TextSize = 20
+    minButton.TextColor3 = Color3.fromRGB(220, 220, 220)
+    minButton.Parent = titleBar
+    Instance.new("UICorner", minButton).CornerRadius = UDim.new(0, 6)
+
+    -- Content frame
+    local content = Instance.new("Frame")
+    content.Size = UDim2.new(1, -12, 1, -64) -- adjusted height for 2 inputs + button
+    content.Position = UDim2.new(0, 6, 0, 38)
+    content.BackgroundTransparency = 1
+    content.Parent = mainFrame
+
+    -- Speed label
+    local speedLabel = Instance.new("TextLabel")
+    speedLabel.Size = UDim2.new(1, 0, 0, 20)
+    speedLabel.BackgroundTransparency = 1
+    speedLabel.Text = "Speed"
+    speedLabel.Font = Enum.Font.Gotham
+    speedLabel.TextSize = 14
+    speedLabel.TextColor3 = Color3.fromRGB(200, 200, 200)
+    speedLabel.TextXAlignment = Enum.TextXAlignment.Left
+    speedLabel.Parent = content
+
+    -- Speed input box
     local speedBox = Instance.new("TextBox")
-    speedBox.Name = "SpeedBox"
-    speedBox.Text = tostring(baseSpeed)
-    speedBox.Size = UDim2.new(0, 100, 0, 50)
-    speedBox.Position = UDim2.new(1, -110, 0, 10)
+    speedBox.Size = UDim2.new(1, 0, 0, 34)
+    speedBox.Position = UDim2.new(0, 0, 0, 22)
     speedBox.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
-    speedBox.TextColor3 = Color3.fromRGB(255, 255, 255)
-    speedBox.Font = Enum.Font.GothamBold
-    speedBox.TextScaled = true
-    speedBox.BackgroundTransparency = 0.2
-    speedBox.Parent = screenGui
+    speedBox.ClearTextOnFocus = false
+    speedBox.Text = tostring(baseSpeed)
+    speedBox.TextColor3 = Color3.fromRGB(230, 230, 230)
+    speedBox.Font = Enum.Font.GothamSemibold
+    speedBox.TextSize = 16
+    speedBox.Parent = content
+    Instance.new("UICorner", speedBox).CornerRadius = UDim.new(0, 6)
 
+    -- Smoothness label
+    local smoothLabel = Instance.new("TextLabel")
+    smoothLabel.Size = UDim2.new(1, 0, 0, 20)
+    smoothLabel.BackgroundTransparency = 1
+    smoothLabel.Text = "Smoothness (Easing)"
+    smoothLabel.Font = Enum.Font.Gotham
+    smoothLabel.TextSize = 14
+    smoothLabel.TextColor3 = Color3.fromRGB(200, 200, 200)
+    smoothLabel.TextXAlignment = Enum.TextXAlignment.Left
+    smoothLabel.Position = UDim2.new(0, 0, 0, 58)
+    smoothLabel.Parent = content
+
+    -- Smoothness input box
+    local smoothBox = Instance.new("TextBox")
+    smoothBox.Size = UDim2.new(1, 0, 0, 34)
+    smoothBox.Position = UDim2.new(0, 0, 0, 80)
+    smoothBox.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+    smoothBox.ClearTextOnFocus = false
+    smoothBox.Text = tostring(smoothness)
+    smoothBox.TextColor3 = Color3.fromRGB(230, 230, 230)
+    smoothBox.Font = Enum.Font.GothamSemibold
+    smoothBox.TextSize = 16
+    smoothBox.Parent = content
+    Instance.new("UICorner", smoothBox).CornerRadius = UDim.new(0, 6)
+
+    -- Toggle Fly button
+    local toggleButton = Instance.new("TextButton")
+    toggleButton.Size = UDim2.new(1, 0, 0, 34)
+    toggleButton.Position = UDim2.new(0, 0, 0, 124)
+    toggleButton.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
+    toggleButton.Text = "Fly OFF"
+    toggleButton.TextColor3 = Color3.fromRGB(245, 245, 245)
+    toggleButton.Font = Enum.Font.GothamBold
+    toggleButton.TextSize = 16
+    toggleButton.Parent = content
+    Instance.new("UICorner", toggleButton).CornerRadius = UDim.new(0, 6)
+
+    -- Dragging support (PC and Mobile)
+    local dragging = false
+    local dragInput, dragStart, startPos
+
+    local function updateDrag(input)
+        local delta = input.Position - dragStart
+        mainFrame.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
+    end
+
+    titleBar.InputBegan:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+            dragging = true
+            dragStart = input.Position
+            startPos = mainFrame.Position
+
+            input.Changed:Connect(function()
+                if input.UserInputState == Enum.UserInputState.End then
+                    dragging = false
+                end
+            end)
+        end
+    end)
+
+    titleBar.InputChanged:Connect(function(input)
+        if dragging and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
+            updateDrag(input)
+        end
+    end)
+
+    UserInputService.InputChanged:Connect(function(input)
+        if dragging and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
+            updateDrag(input)
+        end
+    end)
+
+    -- Minimize logic with slow bouncy tween
+    local isMinimized = false
+    local fullSize = mainFrame.Size
+    local minSize = UDim2.new(0, fullSize.X.Offset / 2, 0, 34)
+    local bounceTweenInfo = TweenInfo.new(0.7, Enum.EasingStyle.Bounce, Enum.EasingDirection.Out)
+
+    local function setMinimized(state)
+        if isMinimized == state then return end
+        isMinimized = state
+        if isMinimized then
+            TweenService:Create(mainFrame, bounceTweenInfo, {Size = minSize}):Play()
+            content.Visible = false
+        else
+            TweenService:Create(mainFrame, bounceTweenInfo, {Size = fullSize}):Play()
+            content.Visible = true
+        end
+    end
+
+    minButton.MouseButton1Click:Connect(function()
+        setMinimized(not isMinimized)
+    end)
+
+    -- Flying control functions
     local function startFlying()
         flying = true
         flySpeed = baseSpeed
         bodyVelocity.Parent = HRP
         bodyGyro.Parent = HRP
         humanoid.PlatformStand = true
+        toggleButton.Text = "Fly ON"
     end
 
     local function stopFlying()
         flying = false
-        bodyVelocity.Parent = nil
-        bodyGyro.Parent = nil
+        if bodyVelocity.Parent == HRP then bodyVelocity.Parent = nil end
+        if bodyGyro.Parent == HRP then bodyGyro.Parent = nil end
         humanoid.PlatformStand = false
+        toggleButton.Text = "Fly OFF"
     end
 
     local function toggleFly()
@@ -80,49 +243,61 @@ local function gui()
 
         if flying then
             stopFlying()
-            toggleButton.Text = "Fly OFF"
         else
             startFlying()
-            toggleButton.Text = "Fly ON"
         end
     end
 
     toggleButton.MouseButton1Click:Connect(toggleFly)
 
-    speedBox.FocusLost:Connect(function()
+    -- Speed input handling
+    speedBox.FocusLost:Connect(function(enterPressed)
         local num = tonumber(speedBox.Text)
         if num and num > 0 then
             baseSpeed = num
             savedSpeed = num
             if flying then flySpeed = baseSpeed end
+            speedBox.Text = tostring(baseSpeed)
         else
             speedBox.Text = tostring(baseSpeed)
         end
     end)
 
-    -- PC Keyboard Input
-    if UserInputService.KeyboardEnabled then
-        UserInputService.InputBegan:Connect(function(input, gameProcessed)
-            if gameProcessed then return end
-            if input.KeyCode == Enum.KeyCode.W then inputFlags.forward = true end
-            if input.KeyCode == Enum.KeyCode.S then inputFlags.back = true end
-            if input.KeyCode == Enum.KeyCode.A then inputFlags.left = true end
-            if input.KeyCode == Enum.KeyCode.D then inputFlags.right = true end
-            if input.KeyCode == Enum.KeyCode.E then inputFlags.up = true end
-            if input.KeyCode == Enum.KeyCode.Q then inputFlags.down = true end
-        end)
+    -- Smoothness input handling
+    smoothBox.FocusLost:Connect(function(enterPressed)
+        local val = tonumber(smoothBox.Text)
+        if val and val > 0 and val <= 1 then
+            smoothness = val
+            savedSmoothness = val
+            smoothBox.Text = tostring(smoothness)
+        else
+            smoothBox.Text = tostring(smoothness)
+        end
+    end)
 
-        UserInputService.InputEnded:Connect(function(input)
-            if input.KeyCode == Enum.KeyCode.W then inputFlags.forward = false end
-            if input.KeyCode == Enum.KeyCode.S then inputFlags.back = false end
-            if input.KeyCode == Enum.KeyCode.A then inputFlags.left = false end
-            if input.KeyCode == Enum.KeyCode.D then inputFlags.right = false end
-            if input.KeyCode == Enum.KeyCode.E then inputFlags.up = false end
-            if input.KeyCode == Enum.KeyCode.Q then inputFlags.down = false end
-        end)
-    end
+    -- Keyboard input handling (PC)
+    UserInputService.InputBegan:Connect(function(input, gameProcessed)
+        if gameProcessed then return end
+        local kc = input.KeyCode
+        if kc == Enum.KeyCode.W then inputFlags.forward = true end
+        if kc == Enum.KeyCode.S then inputFlags.back = true end
+        if kc == Enum.KeyCode.A then inputFlags.left = true end
+        if kc == Enum.KeyCode.D then inputFlags.right = true end
+        if kc == Enum.KeyCode.E then inputFlags.up = true end
+        if kc == Enum.KeyCode.Q then inputFlags.down = true end
+    end)
 
-    -- Load ControlModule for mobile input
+    UserInputService.InputEnded:Connect(function(input)
+        local kc = input.KeyCode
+        if kc == Enum.KeyCode.W then inputFlags.forward = false end
+        if kc == Enum.KeyCode.S then inputFlags.back = false end
+        if kc == Enum.KeyCode.A then inputFlags.left = false end
+        if kc == Enum.KeyCode.D then inputFlags.right = false end
+        if kc == Enum.KeyCode.E then inputFlags.up = false end
+        if kc == Enum.KeyCode.Q then inputFlags.down = false end
+    end)
+
+    -- Load ControlModule for mobile input (with pcall)
     local controlModule
     local playerScripts = player:WaitForChild("PlayerScripts")
     local success
@@ -130,7 +305,11 @@ local function gui()
         return require(playerScripts:WaitForChild("PlayerModule"):WaitForChild("ControlModule"))
     end)
 
-    -- Movement loop
+    -- Variables to track smooth velocity and tilt
+    local currentVelocity = Vector3.new(0, 0, 0)
+    local currentPitch = 0
+    local currentRoll = 0
+
     RunService.RenderStepped:Connect(function()
         if not flying then return end
 
@@ -142,7 +321,6 @@ local function gui()
         local dir = Vector3.zero
 
         if UserInputService.TouchEnabled and not UserInputService.KeyboardEnabled and success and controlModule then
-            -- Mobile joystick input with ControlModule:GetMoveVector()
             local moveVector = controlModule:GetMoveVector()
             dir = Vector3.new(moveVector.X, 0, moveVector.Z)
             dir = camCF:VectorToWorldSpace(dir)
@@ -150,7 +328,6 @@ local function gui()
             if inputFlags.up then dir += camUp end
             if inputFlags.down then dir -= camUp end
         else
-            -- PC keyboard input (original)
             if inputFlags.forward then dir += camLook end
             if inputFlags.back then dir -= camLook end
             if inputFlags.left then dir -= camRight end
@@ -163,22 +340,66 @@ local function gui()
             dir = dir.Unit
         end
 
-        local currentVelocity = bodyVelocity.Velocity
+        -- Easing factors for velocity:
+        local lerpIn = smoothness       -- user controlled smoothing
+        local lerpOut = smoothness / 4  -- slower fade out for smooth stop
+        local lerpFactor = (dir.Magnitude > 0) and lerpIn or lerpOut
+
         local targetVelocity = dir * flySpeed
-        local lerpFactor = (dir.Magnitude > 0) and 0.08 or 0.04
-        bodyVelocity.Velocity = currentVelocity:Lerp(targetVelocity, lerpFactor)
+        currentVelocity = currentVelocity:Lerp(targetVelocity, lerpFactor)
+        bodyVelocity.Velocity = currentVelocity
 
-        local pitch = 0
-        local roll = 0
-        if inputFlags.forward then pitch = math.rad(-15) end
-        if inputFlags.back then pitch = math.rad(15) end
-        if inputFlags.left then roll = math.rad(5) end
-        if inputFlags.right then roll = math.rad(-5) end
+        -- Max tilt angles (~8 degrees)
+        local maxTilt = math.rad(8)
 
-        local direction = camLook
-        local goalCFrame = CFrame.new(HRP.Position, HRP.Position + direction) * CFrame.Angles(pitch, 0, roll)
+        -- Calculate desired pitch and roll based on movement direction
+        local horizontalDir = Vector3.new(dir.X, 0, dir.Z)
+        local horizontalMag = horizontalDir.Magnitude
+
+        local targetPitch = 0
+        local targetRoll = 0
+
+        if horizontalMag > 0 then
+            local moveDir = horizontalDir.Unit
+            local forwardDot = moveDir:Dot(camLook.Unit)
+            local rightDot = moveDir:Dot(camRight.Unit)
+
+            targetPitch = -forwardDot * maxTilt
+            targetRoll = -rightDot * maxTilt
+        end
+
+        -- Easing factors for tilt use same smoothing as velocity for consistency
+        local tiltLerpIn = lerpFactor
+        local tiltLerpOut = smoothness / 8
+        local tiltLerpFactor = (horizontalMag > 0) and tiltLerpIn or tiltLerpOut
+
+        currentPitch = currentPitch + (targetPitch - currentPitch) * tiltLerpFactor
+        currentRoll = currentRoll + (targetRoll - currentRoll) * tiltLerpFactor
+
+        local goalCFrame = CFrame.new(HRP.Position, HRP.Position + camLook) * CFrame.Angles(currentPitch, 0, currentRoll)
         bodyGyro.CFrame = bodyGyro.CFrame:Lerp(goalCFrame, 0.15)
     end)
+
+    local function onDeath()
+        stopFlying()
+    end
+
+    humanoid.Died:Connect(onDeath)
+
+    player.CharacterAdded:Connect(function(newCharacter)
+        character = newCharacter
+        humanoid = character:WaitForChild("Humanoid")
+        HRP = character:WaitForChild("HumanoidRootPart")
+        onDeath()
+        humanoid.Died:Connect(onDeath)
+    end)
+
+    -- Notification on load
+    StarterGui:SetCore("SendNotification", {
+        Title = "VoidHub";
+        Text = "Fly Loaded✅";
+        Duration = 5;
+    })
 end
 
-gui()
+createGui()
