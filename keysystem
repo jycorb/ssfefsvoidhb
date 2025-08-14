@@ -274,7 +274,14 @@ end)
 -- Get Key button logic
 getKey.MouseButton1Click:Connect(function()
 	if SetClipboard then
-		SetClipboard("https://lootdest.org/s?5UBgUtSK")
+		SetClipboard("https://lootdest.org/s?kuyS1IRD")
+
+game.StarterGui:SetCore("SendNotification", {
+    Title = "Copied Link to Clipboard",
+    Text = "Paste the link in your browser for the key.",
+    Duration = 8,
+    Button1 = "Okay"
+})
 		createNotification("Key link copied")
 	else
 		textbox.PlaceholderText = "Clipboard unsupported"
