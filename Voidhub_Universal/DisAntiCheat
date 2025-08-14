@@ -1,0 +1,48 @@
+-- Anti-Teleport + God Mode Script
+-- Prevents server teleporting >2 studs and stops death
+
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+
+local player = Players.LocalPlayer
+local character = player.Character or player.CharacterAdded:Wait()
+local hrp = character:WaitForChild("HumanoidRootPart")
+local humanoid = character:WaitForChild("Humanoid")
+
+-- Threshold in studs
+local MAX_TELEPORT_DISTANCE = 2
+
+-- Store last known safe state
+local lastPosition = hrp.Position
+local lastCFrame = hrp.CFrame
+local lastVelocity = hrp.Velocity
+
+-- Update safe state each frame
+RunService.RenderStepped:Connect(function()
+    if humanoid.Health > 0 then
+        lastPosition = hrp.Position
+        lastCFrame = hrp.CFrame
+        lastVelocity = hrp.Velocity
+    end
+end)
+
+-- Prevent server teleporting too far
+hrp:GetPropertyChangedSignal("CFrame"):Connect(function()
+    local distance = (hrp.Position - lastPosition).Magnitude
+    if distance > MAX_TELEPORT_DISTANCE then
+        hrp.CFrame = lastCFrame
+        hrp.Velocity = lastVelocity
+    end
+end)
+
+-- Prevent server from killing you
+humanoid:GetPropertyChangedSignal("Health"):Connect(function()
+    if humanoid.Health < humanoid.MaxHealth then
+        humanoid.Health = humanoid.MaxHealth
+    end
+end)
+
+-- Optional: Constantly lock health (extra safety)
+RunService.Heartbeat:Connect(function()
+    humanoid.Health = humanoid.MaxHealth
+end)
