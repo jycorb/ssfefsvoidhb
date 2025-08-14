@@ -5,7 +5,7 @@ local UIS = game:GetService("UserInputService")
 local TweenService = game:GetService("TweenService")
 local SetClipboard = setclipboard or toclipboard or (Clipboard and Clipboard.set)
 
-local keyFileName = "voidhub_key.txt"
+local keyFileName = "niggers12341.txt"
 
 -- Rainbow function
 local function rainbowColor(time)
@@ -274,7 +274,7 @@ end)
 -- Get Key button logic
 getKey.MouseButton1Click:Connect(function()
 	if SetClipboard then
-		SetClipboard("https://loot-link.com/s?fnz5NLY3")
+		SetClipboard("https://lootdest.org/s?5UBgUtSK")
 		createNotification("Key link copied")
 	else
 		textbox.PlaceholderText = "Clipboard unsupported"
