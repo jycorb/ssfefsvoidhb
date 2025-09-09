@@ -5,7 +5,7 @@ local UIS = game:GetService("UserInputService")
 local TweenService = game:GetService("TweenService")
 local SetClipboard = setclipboard or toclipboard or (Clipboard and Clipboard.set)
 
-local keyFileName = "niggers12341.txt"
+local keyFileName = "ChildPornLinks.txt"
 
 -- Rainbow function
 local function rainbowColor(time)
