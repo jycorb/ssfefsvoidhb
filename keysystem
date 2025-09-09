@@ -274,7 +274,7 @@ end)
 -- Get Key button logic
 getKey.MouseButton1Click:Connect(function()
 	if SetClipboard then
-		SetClipboard("https://lootdest.org/s?kuyS1IRD")
+		SetClipboard("https://discord.gg/5b6qRKFEFf")
 
 game.StarterGui:SetCore("SendNotification", {
     Title = "Copied Link to Clipboard",
