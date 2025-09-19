@@ -1,0 +1,170 @@
+--// Better Speed GUI with Anticheat Disable (Momentum Preserved)
+local Players = game:GetService("Players")
+local LocalPlayer = Players.LocalPlayer
+local StarterGui = game:GetService("StarterGui")
+local RunService = game:GetService("RunService")
+
+-- Gui
+local ScreenGui = Instance.new("ScreenGui")
+ScreenGui.Parent = LocalPlayer:WaitForChild("PlayerGui")
+ScreenGui.ResetOnSpawn = false
+
+local MainFrame = Instance.new("Frame")
+MainFrame.Size = UDim2.new(0, 250, 0, 270)
+MainFrame.Position = UDim2.new(0.35, 0, 0.3, 0)
+MainFrame.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
+MainFrame.BorderSizePixel = 0
+MainFrame.Active = true
+MainFrame.Draggable = true
+MainFrame.Parent = ScreenGui
+
+local TopBar = Instance.new("Frame")
+TopBar.Size = UDim2.new(1, 0, 0, 30)
+TopBar.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
+TopBar.BorderSizePixel = 0
+TopBar.Parent = MainFrame
+
+local Title = Instance.new("TextLabel")
+Title.Text = "Better Speed"
+Title.Size = UDim2.new(1, -30, 1, 0)
+Title.Position = UDim2.new(0, 5, 0, 0)
+Title.BackgroundTransparency = 1
+Title.TextColor3 = Color3.fromRGB(255, 255, 255)
+Title.Font = Enum.Font.SourceSansBold
+Title.TextSize = 18
+Title.TextXAlignment = Enum.TextXAlignment.Left
+Title.Parent = TopBar
+
+local MinButton = Instance.new("TextButton")
+MinButton.Text = "-"
+MinButton.Size = UDim2.new(0, 30, 1, 0)
+MinButton.Position = UDim2.new(1, -30, 0, 0)
+MinButton.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+MinButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+MinButton.Font = Enum.Font.SourceSansBold
+MinButton.TextSize = 18
+MinButton.Parent = TopBar
+
+local Container = Instance.new("Frame")
+Container.Size = UDim2.new(1, 0, 1, -30)
+Container.Position = UDim2.new(0, 0, 0, 30)
+Container.BackgroundTransparency = 1
+Container.Parent = MainFrame
+
+-- WalkSpeed input
+local WalkSpeedBox = Instance.new("TextBox")
+WalkSpeedBox.Size = UDim2.new(0.9, 0, 0, 30)
+WalkSpeedBox.Position = UDim2.new(0.05, 0, 0.05, 0)
+WalkSpeedBox.PlaceholderText = "WalkSpeed"
+WalkSpeedBox.Text = "16"
+WalkSpeedBox.BackgroundColor3 = Color3.fromRGB(45, 45, 45)
+WalkSpeedBox.TextColor3 = Color3.fromRGB(255, 255, 255)
+WalkSpeedBox.Font = Enum.Font.SourceSans
+WalkSpeedBox.TextSize = 16
+WalkSpeedBox.Parent = Container
+
+local WSSubmit = Instance.new("TextButton")
+WSSubmit.Size = UDim2.new(0.9, 0, 0, 25)
+WSSubmit.Position = UDim2.new(0.05, 0, 0.2, 0)
+WSSubmit.Text = "Submit WalkSpeed"
+WSSubmit.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
+WSSubmit.TextColor3 = Color3.fromRGB(255, 255, 255)
+WSSubmit.Font = Enum.Font.SourceSansBold
+WSSubmit.TextSize = 14
+WSSubmit.Parent = Container
+
+-- JumpPower input
+local JumpPowerBox = Instance.new("TextBox")
+JumpPowerBox.Size = UDim2.new(0.9, 0, 0, 30)
+JumpPowerBox.Position = UDim2.new(0.05, 0, 0.35, 0)
+JumpPowerBox.PlaceholderText = "JumpPower"
+JumpPowerBox.Text = "50"
+JumpPowerBox.BackgroundColor3 = Color3.fromRGB(45, 45, 45)
+JumpPowerBox.TextColor3 = Color3.fromRGB(255, 255, 255)
+JumpPowerBox.Font = Enum.Font.SourceSans
+JumpPowerBox.TextSize = 16
+JumpPowerBox.Parent = Container
+
+local JPSubmit = Instance.new("TextButton")
+JPSubmit.Size = UDim2.new(0.9, 0, 0, 25)
+JPSubmit.Position = UDim2.new(0.05, 0, 0.5, 0)
+JPSubmit.Text = "Submit JumpPower"
+JPSubmit.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
+JPSubmit.TextColor3 = Color3.fromRGB(255, 255, 255)
+JPSubmit.Font = Enum.Font.SourceSansBold
+JPSubmit.TextSize = 14
+JPSubmit.Parent = Container
+
+-- Anticheat Button
+local AntiCheatBtn = Instance.new("TextButton")
+AntiCheatBtn.Size = UDim2.new(0.9, 0, 0, 30)
+AntiCheatBtn.Position = UDim2.new(0.05, 0, 0.7, 0)
+AntiCheatBtn.Text = "Disable Anticheat"
+AntiCheatBtn.BackgroundColor3 = Color3.fromRGB(200, 50, 50)
+AntiCheatBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+AntiCheatBtn.Font = Enum.Font.SourceSansBold
+AntiCheatBtn.TextSize = 14
+AntiCheatBtn.Parent = Container
+
+-- Minimize toggle
+local minimized = false
+MinButton.MouseButton1Click:Connect(function()
+	minimized = not minimized
+	if minimized then
+		Container.Visible = false
+		MainFrame.Size = UDim2.new(0, 250, 0, 30)
+	else
+		Container.Visible = true
+		MainFrame.Size = UDim2.new(0, 250, 0, 270)
+	end
+end)
+
+-- Submit button logic
+WSSubmit.MouseButton1Click:Connect(function()
+	local char = LocalPlayer.Character
+	if char and char:FindFirstChildOfClass("Humanoid") then
+		local hum = char:FindFirstChildOfClass("Humanoid")
+		local ws = tonumber(WalkSpeedBox.Text)
+		if ws then hum.WalkSpeed = ws end
+	end
+end)
+
+JPSubmit.MouseButton1Click:Connect(function()
+	local char = LocalPlayer.Character
+	if char and char:FindFirstChildOfClass("Humanoid") then
+		local hum = char:FindFirstChildOfClass("Humanoid")
+		local jp = tonumber(JumpPowerBox.Text)
+		if jp then hum.JumpPower = jp end
+	end
+end)
+
+-- Disable Anticheat
+AntiCheatBtn.MouseButton1Click:Connect(function()
+	StarterGui:SetCore("SendNotification", {
+		Title = "Better Speed";
+		Text = "Anticheats (Mostly) disabled";
+		Duration = 5;
+	})
+
+	local lastPos, lastVel, lastCFrame
+	RunService.Heartbeat:Connect(function()
+		local char = LocalPlayer.Character
+		if not char then return end
+		local hrp = char:FindFirstChild("HumanoidRootPart")
+		if not hrp then return end
+
+		-- Store position + velocity
+		if lastPos then
+			local dist = (hrp.Position - lastPos).Magnitude
+			if dist > 1 then
+				-- Snap back w/ momentum
+				hrp.CFrame = lastCFrame
+				hrp.AssemblyLinearVelocity = lastVel
+			end
+		end
+
+		lastPos = hrp.Position
+		lastVel = hrp.AssemblyLinearVelocity
+		lastCFrame = hrp.CFrame
+	end)
+end)
