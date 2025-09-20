@@ -1,0 +1,255 @@
+-- LocalScript inside StarterGui
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+local TweenService = game:GetService("TweenService")
+
+local player = Players.LocalPlayer
+
+-- GUI setup
+local gui = Instance.new("ScreenGui", player:WaitForChild("PlayerGui"))
+gui.Name = "BoxGliderGui"
+gui.ResetOnSpawn = false
+
+local frame = Instance.new("Frame", gui)
+frame.AnchorPoint = Vector2.new(0.5,0.5)
+frame.Position = UDim2.new(0.5,0,0.2,0)
+frame.Size = UDim2.new(0,250,0,180)
+frame.BackgroundColor3 = Color3.fromRGB(30,30,30)
+frame.BorderSizePixel = 0
+frame.BackgroundTransparency = 0.1
+frame.ZIndex = 1
+frame.Active = true
+frame.Draggable = true
+
+local uicorner = Instance.new("UICorner", frame)
+uicorner.CornerRadius = UDim.new(0,15)
+
+-- Top Bar
+local topbar = Instance.new("Frame", frame)
+topbar.Size = UDim2.new(1,0,0,35)
+topbar.BackgroundColor3 = Color3.fromRGB(45,45,45)
+topbar.BorderSizePixel = 0
+topbar.ZIndex = 2
+
+local title = Instance.new("TextLabel", topbar)
+title.Text = "Crate Autofarm"
+title.Size = UDim2.new(1,-50,1,0)
+title.Position = UDim2.new(0,10,0,0)
+title.TextColor3 = Color3.new(1,1,1)
+title.BackgroundTransparency = 1
+title.TextXAlignment = Enum.TextXAlignment.Left
+title.TextSize = 18
+title.Font = Enum.Font.GothamBold
+title.ZIndex = 3
+
+local minimize = Instance.new("TextButton", topbar)
+minimize.Size = UDim2.new(0,30,0,30)
+minimize.Position = UDim2.new(1,-35,0.5,-15)
+minimize.Text = "-"
+minimize.TextScaled = true
+minimize.BackgroundColor3 = Color3.fromRGB(255,80,80)
+minimize.TextColor3 = Color3.new(1,1,1)
+minimize.ZIndex = 3
+local mincorner = Instance.new("UICorner", minimize)
+mincorner.CornerRadius = UDim.new(1,0)
+
+-- Toggle Button
+local button = Instance.new("TextButton", frame)
+button.Size = UDim2.new(1,-20,0,80)
+button.Position = UDim2.new(0,10,0,40)
+button.Text = "Turn On"
+button.TextScaled = true
+button.BackgroundColor3 = Color3.fromRGB(0,170,255)
+button.TextColor3 = Color3.new(1,1,1)
+button.ZIndex = 2
+local btncorner = Instance.new("UICorner", button)
+btncorner.CornerRadius = UDim.new(0,12)
+
+-- Speed Box
+local speedBox = Instance.new("TextBox", frame)
+speedBox.Size = UDim2.new(1,-20,0,30)
+speedBox.Position = UDim2.new(0,10,0,130)
+speedBox.Text = "160"
+speedBox.PlaceholderText = "Speed"
+speedBox.TextScaled = true
+speedBox.BackgroundColor3 = Color3.fromRGB(50,50,50)
+speedBox.TextColor3 = Color3.new(1,1,1)
+speedBox.ZIndex = 2
+local spcorner = Instance.new("UICorner", speedBox)
+spcorner.CornerRadius = UDim.new(0,10)
+
+-- Variables
+local running = false
+local SPEED = 160
+local MAX_SPEED = 160
+local minimized = false
+local savedCollisions = {}
+local noclipConn, antiTpConn, faceConn
+local currentChar, hrp, humanoid
+
+-- Setup character on spawn or respawn
+local function setupCharacter(char)
+	currentChar = char
+	hrp = char:WaitForChild("HumanoidRootPart")
+	humanoid = char:WaitForChild("Humanoid")
+	humanoid.AutoRotate = false -- disables animations auto-rotation
+	if running then
+		setNoclip(true)
+		setAntiTeleport(true)
+		faceDown()
+	end
+end
+
+-- Noclip
+function setNoclip(state)
+	if not currentChar then return end
+	if state then
+		savedCollisions = {}
+		for _, part in ipairs(currentChar:GetDescendants()) do
+			if part:IsA("BasePart") then
+				savedCollisions[part] = part.CanCollide
+				part.CanCollide = false
+			end
+		end
+		noclipConn = RunService.Stepped:Connect(function()
+			for _, part in ipairs(currentChar:GetDescendants()) do
+				if part:IsA("BasePart") then
+					part.CanCollide = false
+				end
+			end
+		end)
+	else
+		if noclipConn then noclipConn:Disconnect() noclipConn=nil end
+		for part, old in pairs(savedCollisions) do
+			if part and part:IsA("BasePart") then
+				part.CanCollide = old
+			end
+		end
+		savedCollisions = {}
+	end
+end
+
+-- Anti-Teleport
+function setAntiTeleport(state)
+	if not currentChar then return end
+	if antiTpConn then antiTpConn:Disconnect() end
+	local lastSafeCFrame = hrp.CFrame
+	if state then
+		antiTpConn = hrp:GetPropertyChangedSignal("CFrame"):Connect(function()
+			if running then lastSafeCFrame = hrp.CFrame return end
+			local dist = (hrp.Position - lastSafeCFrame.Position).Magnitude
+			if dist > 2 then hrp.CFrame = lastSafeCFrame else lastSafeCFrame = hrp.CFrame end
+		end)
+	end
+end
+
+-- Weapon click
+local function clickWeapon()
+	if humanoid and currentChar then
+		local tool = currentChar:FindFirstChildOfClass("Tool")
+		if tool then tool:Activate() end
+	end
+end
+
+-- Glide
+local function glideTo(targetPos)
+	return coroutine.wrap(function()
+		while running and hrp do
+			local dir = (targetPos - hrp.Position)
+			local dist = dir.Magnitude
+			if dist < 3 then hrp.Velocity = Vector3.zero break end
+			hrp.Velocity = dir.Unit * SPEED
+			RunService.Heartbeat:Wait()
+		end
+	end)()
+end
+
+-- Nearest box
+local function getNearestBox()
+	local nearest, nearestDist
+	for _, obj in ipairs(workspace:GetDescendants()) do
+		if obj:IsA("BasePart") and obj.Name == "boxpos" and #obj:GetChildren() > 0 then
+			local dist = (obj.Position - hrp.Position).Magnitude
+			if not nearest or dist < nearestDist then
+				nearest = obj
+				nearestDist = dist
+			end
+		end
+	end
+	return nearest
+end
+
+-- Main loop
+local function runLoop()
+	while running and hrp do
+		local part = getNearestBox()
+		if not part then task.wait(0.5) continue end
+		glideTo(part.Position + Vector3.new(0,5,0))
+		repeat RunService.Heartbeat:Wait()
+		until not running or (hrp.Position - (part.Position + Vector3.new(0,5,0))).Magnitude < 3
+		if not running then break end
+		clickWeapon()
+		task.wait(0.2)
+	end
+	if hrp then hrp.Velocity = Vector3.zero end
+end
+
+-- Speed update
+speedBox.FocusLost:Connect(function()
+	local val = tonumber(speedBox.Text)
+	if val and val > 0 then SPEED = math.min(val,MAX_SPEED)
+	else speedBox.Text = tostring(SPEED)
+	end
+end)
+
+-- Face down function
+local function faceDown()
+	if not hrp or not humanoid then return end
+	if faceConn then faceConn:Disconnect() end
+	faceConn = RunService.RenderStepped:Connect(function()
+		if running and hrp then
+			local pos = hrp.Position
+			hrp.CFrame = CFrame.new(pos, pos + Vector3.new(0,0,1)) -- faces forward/down
+		end
+	end)
+end
+
+-- Toggle button
+button.MouseButton1Click:Connect(function()
+	running = not running
+	if running then
+		button.Text = "Turn Off"
+		button.BackgroundColor3 = Color3.fromRGB(255,80,80)
+		setNoclip(true)
+		setAntiTeleport(true)
+		faceDown()
+		task.spawn(runLoop)
+	else
+		button.Text = "Turn On"
+		button.BackgroundColor3 = Color3.fromRGB(0,170,255)
+		setNoclip(false)
+		setAntiTeleport(false)
+		if faceConn then faceConn:Disconnect() faceConn=nil end
+		if hrp then hrp.Velocity = Vector3.zero end
+	end
+end)
+
+-- Minimize GUI
+minimize.MouseButton1Click:Connect(function()
+	minimized = not minimized
+	if minimized then
+		TweenService:Create(frame,TweenInfo.new(0.6,Enum.EasingStyle.Elastic,Enum.EasingDirection.Out),{Size=UDim2.new(0,325,0,40)}):Play()
+		TweenService:Create(button,TweenInfo.new(0.5,Enum.EasingStyle.Quad,Enum.EasingDirection.Out),{Size=UDim2.new(0,100,0,25),Position=UDim2.new(1,-170,0.5,-12)}):Play()
+		speedBox.Visible = false
+	else
+		TweenService:Create(frame,TweenInfo.new(0.6,Enum.EasingStyle.Elastic,Enum.EasingDirection.Out),{Size=UDim2.new(0,250,0,180)}):Play()
+		TweenService:Create(button,TweenInfo.new(0.5,Enum.EasingStyle.Quad,Enum.EasingDirection.Out),{Size=UDim2.new(1,-20,0,80),Position=UDim2.new(0,10,0,40)}):Play()
+		speedBox.Visible = true
+	end
+end)
+
+-- Initial setup
+setupCharacter(player.Character or player.CharacterAdded:Wait())
+player.CharacterAdded:Connect(function(char)
+	setupCharacter(char)
+end)
